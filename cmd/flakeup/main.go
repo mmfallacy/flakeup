@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/integrii/flaggy"
 )
 
@@ -35,10 +34,6 @@ func init() {
 
 	initCmd.AddPositionalValue(&template, "template", 1, true, "Name of the template to initialize.")
 
-}
-
-func handleInit() {
-	fmt.Println("Hello from subcommand init")
 }
 
 func main() {
