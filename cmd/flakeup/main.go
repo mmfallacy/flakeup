@@ -1,47 +1,29 @@
 package main
 
 import (
-	// "flag"
 	"fmt"
-	"os"
+	"github.com/integrii/flaggy"
 )
-
-var usage string = `
-Usage: flakeup [command]
-
-Commands:
-  init, i <template>    Initialize a new flake project from a template.
-
-Flags:
-  --flake <FLAKE>       Specify the flake template source (e.g 'github:user/repo', '~/.flake').
-												Precedence: --flake flag > $FLAKEUP_FLAKE > $FLAKE > $HOME/.nixconfig.
-
-Description:
-  flakeup is a supercharged 'nix flake init -t' that allows initializing
-  Nix flake projects from custom templates with advanced features like
-  conflict resolution and argument substitution.
-`
 
 func handleInit() {
 	fmt.Println("Hello from subcommand init")
 }
 
 func main() {
+	flaggy.SetName("flakeup")
+	flaggy.SetDescription(`
+	flakeup is a supercharged 'nix flake init -t' that allows initializing
+	Nix flake projects from custom templates with advanced features like
+	conflict resolution and argument substitution.
+	`)
 
-	if len(os.Args) < 2 {
-		fmt.Println("flakeup: Missing subcommand [init].")
-		fmt.Println(usage)
-		os.Exit(1)
-	}
+	init := flaggy.NewSubcommand("init")
+	init.Description = "Initialize a new flake project from a template."
 
-	subcmd := os.Args[1]
+	var flake string
+	flaggy.String(&flake, "f", "flake", `Specify the flake template source (e.g 'github:user/repo', '~/.flake') 
+		    Precedence: --flake flag > $FLAKEUP_FLAKE > $FLAKE > $HOME/.nixconfig.`)
 
-	switch subcmd {
-	case "init":
-		handleInit()
-	default:
-		fmt.Printf("flakeup: Unknown subcommand %s\n", subcmd)
-		fmt.Println(usage)
-	}
-
+	flaggy.AttachSubcommand(init, 1)
+	flaggy.Parse()
 }
