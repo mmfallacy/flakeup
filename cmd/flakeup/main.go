@@ -1,6 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/integrii/flaggy"
 )
 
@@ -36,7 +40,32 @@ func init() {
 
 }
 
+func panic(msg string) {
+	fmt.Printf("Unexpected error: %s\n", msg)
+	os.Exit(2)
+}
+
+// Get Flake Path from other source if flag is unset
+func getFlakePath() string {
+	if flake := os.Getenv("FLAKEUP_FLAKE"); flake != "" {
+		return flake
+	}
+	if flake := os.Getenv("FLAKE"); flake != "" {
+		return flake
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		panic("Cannot get user home dir")
+	}
+
+	return filepath.Join(home, ".nixconfig")
+}
+
 func main() {
+	if flake == "" {
+		flake = getFlakePath()
+	}
 	if initCmd.Used {
 		handleInit()
 	}
