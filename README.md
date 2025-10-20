@@ -7,7 +7,7 @@
 - [ ] command line tool
   - [ ] `flakeup i[nit] <template>`
     > `flakeup` uses the flake specified in the following precedence:
-    > `$FLAKEUP_FLAKE` > `$FLAKE` > `~/.nixconfig`
+    > `--flake` > `$FLAKEUP_FLAKE` > `$FLAKE` > `~/.nixconfig`
   - [ ] `flakeup i[nit] --flake <FLAKE> <template>`
     > Specify the flake template source via `--flake` flag
 - [ ] Reads the `flakeupTemplates` custom flake outputs

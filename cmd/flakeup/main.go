@@ -13,8 +13,8 @@ Commands:
   init, i <template>    Initialize a new flake project from a template.
 
 Flags:
-  --flake <FLAKE>       Specify the flake template source (e.g., 'github:user/repo').
-                        Precedence: $FLAKEUP_FLAKE > $FLAKE > ~/.nixconfig > --flake flag.
+  --flake <FLAKE>       Specify the flake template source (e.g 'github:user/repo', '~/.flake').
+												Precedence: --flake flag > $FLAKEUP_FLAKE > $FLAKE > $HOME/.nixconfig.
 
 Description:
   flakeup is a supercharged 'nix flake init -t' that allows initializing
