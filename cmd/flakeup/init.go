@@ -21,18 +21,19 @@ func getTemplates() {
 	out, err := cmd.Output()
 
 	if err != nil {
-		panic("flakeup: nix eval failed to run!")
+		panic("flakeup: nix eval failed to run!", err)
 	}
 
 	var templates TTemplates
 	if err := json.Unmarshal(out, &templates); err != nil {
-		panic("flakeup: nix eval failed to run!")
+		panic("flakeup: failed to unmarshal json from nix eval", err)
 	}
 
 	sout, err := prettify(templates)
 	if err != nil {
-		panic("")
+		panic("", err)
 	}
+
 	fmt.Println("Unmarshalled: %s", sout)
 }
 

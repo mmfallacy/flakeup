@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -40,11 +39,6 @@ func init() {
 
 }
 
-func panic(msg string) {
-	fmt.Printf("Unexpected error: %s\n", msg)
-	os.Exit(2)
-}
-
 // Get Flake Path from other source if flag is unset
 func getFlakePath() string {
 	if flake := os.Getenv("FLAKEUP_FLAKE"); flake != "" {
@@ -56,7 +50,7 @@ func getFlakePath() string {
 
 	home, err := os.UserHomeDir()
 	if err != nil {
-		panic("Cannot get user home dir")
+		panic("Cannot get user home dir", err)
 	}
 
 	return filepath.Join(home, ".nixconfig")
