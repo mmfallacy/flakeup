@@ -1,6 +1,4 @@
-{
-  pkgs,
-}:
+{ pkgs, }:
 with pkgs;
 mkShell {
   name = ".nixconfig base template";
@@ -8,6 +6,9 @@ mkShell {
   nativeBuildInputs = [
     go
     gopls
+
+    # For injected formatting
+    nixfmt-rfc-style
   ];
 
 }
