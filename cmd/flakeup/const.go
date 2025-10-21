@@ -1,9 +1,9 @@
 package main
 
 const (
-	ConflictPrepend TConflictAction = iota
-	ConflictAppend
-	ConflictOverwrite
-	ConflictIgnore
-	ConflictAsk
+	ConflictPrepend   TConflictAction = "prepend"
+	ConflictAppend    TConflictAction = "append"
+	ConflictOverwrite TConflictAction = "overwrite"
+	ConflictIgnore    TConflictAction = "ignore"
+	ConflictAsk       TConflictAction = "ask"
 )
