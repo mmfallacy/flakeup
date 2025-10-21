@@ -14,6 +14,9 @@
 - [ ] Copies files from flake to current active directory
 - [ ] When a conflict occurs, follow precedence rules (conflict: `"prepend"`, `"append"`, `"overwrite"`, `"ignore"`, `"ask"`)
 - [ ] `flakeupTemplates` may specify specific arguments per template(`ARG1,ARG2,...`) with their defaults. These would substitute their values in any file of the template that contains `@@ARG1@@,@@ARG2@@,...`
+- [ ]
+- [ ] when arbitrary flags like `--ARG1 somevalue` are passed, it will override the replacement string for ALL matching substitutes.
+- [ ]
 
 ## `outputs.flakeupTemplates` schema:
 
@@ -21,11 +24,36 @@
 let
   types = (import <nixpkgs>).lib.types;
 
+  parameterType = types.submodule {
+    options = {
+      name = lib.mkOption {
+        type = types.string;
+        description = "Parameter name";
+      };
+      prompt = lib.mkOption {
+        type = types.nullOr types.string;
+        default = null;
+        description = "Prompt to use to ask user for replacement value";
+      };
+      default = lib.mkOption {
+        type = types.nullOr types.string;
+        default = null;
+        description = "Default value for parameter";
+      };
+
+    };
+  };
+
   templateModule = types.submodule {
     options = {
       root = lib.mkOption {
         type = types.path;
         description = "Root path of template";
+      };
+
+      parameters = lib.mkOption {
+        type = types.listOf parameterType;
+        description = "List of valid parameters flakeup will process.";
       };
 
       rules = lib.mkOption {
@@ -47,10 +75,6 @@ let
         ];
         description = "Determines how flakeup handles file conflicts";
       };
-      substitutes = lib.mkOption {
-        type = types.attrsOf types.string;
-        description = "Attrset where the key is a pattern to match and the value is the replacement string.";
-      };
     };
   };
 
@@ -62,38 +86,3 @@ in
   };
 }
 ```
-
-Sample:
-
-```nix
-{
-  flakeupTemplates = {
-    someTemplate = {
-      root = ./templates/base;
-      rules = {
-        "./somefile.txt" = {
-          substitutes = {
-            "@@SOMEARG@@" = "replacement";
-          };
-        };
-        # flakeupTemplates can ask for globs instead of direct filenames.
-        # all files recursively within this will follow onConflict and substitutes by default
-        "./subpath-dir/*" = {
-          onConflict = "ignore";
-          substitutes = {
-            "@@SOMEARG@@" = "replacement";
-          };
-        };
-
-        # rules on files targeted by globs can be overriden
-        "./subpath-dir/.gitignore" = {
-          onConflict = "append";
-        };
-
-      };
-    };
-  };
-}
-```
-
-which you can apply via `flakeup init someTemplate`
