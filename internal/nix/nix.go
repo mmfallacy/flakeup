@@ -1,34 +1,49 @@
 package nix
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
-	"strings"
-
-	"github.com/mmfallacy/flakeup/internal/utils"
 )
 
-func HasFlakeOutput(flake string, output string) bool {
+var ErrNixEvalFailed = errors.New("nix eval failed")
+var ErrNixJsonUnmarshallFailed = errors.New("nix eval resulted in an unexpected json schema")
+
+func HasFlakeOutput(flake, output string) (bool, error) {
 	path, err := filepath.Abs(flake)
+	if err != nil {
+		return false, fmt.Errorf("flake path resolution failed: %w", err)
+	}
+	expr := fmt.Sprintf("(builtins.getFlake \"%s\").outputs ? %s", path, output)
+	cmd := exec.Command("nix", "eval", "--impure", "--expr", expr)
+	out, err := cmd.Output()
 
 	if err != nil {
-		utils.Panic("flakeup: cannot normalize flake path", err)
+		return false, fmt.Errorf("%w: cannot check if output exists in flake", ErrNixEvalFailed)
 	}
 
-	expr := fmt.Sprintf("(builtins.getFlake \"%s\").outputs ? flakeupTemplates", path)
+	return bytes.Equal(bytes.TrimSpace(out), []byte("true")), nil
+}
 
-	cmd := exec.Command("nix", "eval", "--impure", "--expr", expr)
+// T should be a struct that would contain the JSON contents
+func GetFlakeOutput[T any](flake, output string) (T, error) {
+	var unmarshalled T
 
-	fmt.Println(cmd.Args)
+	flakeArg := fmt.Sprintf("%s#%s", flake, output)
+	cmd := exec.Command("nix", "eval", flakeArg, "--json")
 
 	out, err := cmd.Output()
 
 	if err != nil {
-		utils.Panic("flakeup: nix eval failed to check existence of flakeupTemplates output", err)
+		return unmarshalled, fmt.Errorf("%w: %w", ErrNixEvalFailed, err)
 	}
 
-	result := strings.TrimSpace(string(out))
+	if err := json.Unmarshal(out, &unmarshalled); err != nil {
+		return unmarshalled, fmt.Errorf("%w: %w", ErrNixJsonUnmarshallFailed, err)
+	}
 
-	return result == "true"
+	return unmarshalled, nil
 }
