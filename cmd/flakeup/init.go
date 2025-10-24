@@ -10,14 +10,6 @@ import (
 	"github.com/mmfallacy/flakeup/internal/utils"
 )
 
-func prettify(v any) (string, error) {
-	b, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
 func ensureFlakeupTemplatesOutputExists() bool {
 	path, err := filepath.Abs(flake)
 
@@ -57,7 +49,7 @@ func getTemplates() {
 		utils.Panic("flakeup: failed to unmarshal json from nix eval", err)
 	}
 
-	sout, err := prettify(templates)
+	sout, err := utils.Prettify(templates)
 	if err != nil {
 		utils.Panic("", err)
 	}
