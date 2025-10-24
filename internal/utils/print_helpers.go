@@ -1,11 +1,11 @@
-package main
+package utils
 
 import (
 	"fmt"
 	"os"
 )
 
-func panic(msg string, err error) {
+func Panic(msg string, err error) {
 	fmt.Printf("Unexpected error: %s\n%v", msg, err)
-	os.Exit(2)
+	os.Exit(1)
 }

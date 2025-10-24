@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/mmfallacy/flakeup/internal/utils"
 )
 
 func prettify(v any) (string, error) {
@@ -20,7 +22,7 @@ func ensureFlakeupTemplatesOutputExists() bool {
 	path, err := filepath.Abs(flake)
 
 	if err != nil {
-		panic("flakeup: cannot normalize flake path", err)
+		utils.Panic("flakeup: cannot normalize flake path", err)
 	}
 
 	expr := fmt.Sprintf("(builtins.getFlake \"%s\").outputs ? flakeupTemplates", path)
@@ -32,7 +34,7 @@ func ensureFlakeupTemplatesOutputExists() bool {
 	out, err := cmd.Output()
 
 	if err != nil {
-		panic("flakeup: nix eval failed to check existence of flakeupTemplates output", err)
+		utils.Panic("flakeup: nix eval failed to check existence of flakeupTemplates output", err)
 	}
 
 	result := strings.TrimSpace(string(out))
@@ -47,17 +49,17 @@ func getTemplates() {
 	out, err := cmd.Output()
 
 	if err != nil {
-		panic("flakeup: nix eval failed to run!", err)
+		utils.Panic("flakeup: nix eval failed to run!", err)
 	}
 
 	var templates TTemplates
 	if err := json.Unmarshal(out, &templates); err != nil {
-		panic("flakeup: failed to unmarshal json from nix eval", err)
+		utils.Panic("flakeup: failed to unmarshal json from nix eval", err)
 	}
 
 	sout, err := prettify(templates)
 	if err != nil {
-		panic("", err)
+		utils.Panic("", err)
 	}
 
 	fmt.Println("Unmarshalled: %s", sout)
