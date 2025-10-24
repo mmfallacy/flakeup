@@ -11,10 +11,11 @@ func Panic(msg string, err error) {
 	os.Exit(1)
 }
 
-func Prettify(v any) (string, error) {
+func Prettify(v any) string {
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
-		return "", err
+		// Return fixed string instead on failure so fn can be used
+		return "json marshall failed"
 	}
-	return string(b), nil
+	return string(b)
 }
