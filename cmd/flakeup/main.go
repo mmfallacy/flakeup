@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/integrii/flaggy"
+	"github.com/mmfallacy/flakeup/internal/cli"
 	"github.com/mmfallacy/flakeup/internal/utils"
 )
 
@@ -61,7 +62,9 @@ func main() {
 	if flake == "" {
 		flake = getFlakePath()
 	}
+
+	globalOpts := cli.GlobalOptions{FlakePath: flake}
 	if initCmd.Used {
-		handleInit()
+		cli.HandleInit(cli.InitOptions{GlobalOptions: globalOpts, Template: template})
 	}
 }
