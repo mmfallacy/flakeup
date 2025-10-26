@@ -7,17 +7,21 @@ import (
 	"github.com/mmfallacy/flakeup/internal/utils"
 )
 
-func HandleInit(opts InitOptions) {
+func HandleInit(opts InitOptions) error {
 	fmt.Printf("Cloning template %s from flake %s\n", opts.Template, opts.FlakePath)
-	hasOutput, err := nix.HasFlakeOutput(opts.FlakePath, "flakeupTemplates")
 
-	if err != nil {
-		utils.Panic("Something went wrong", err)
+	if hasOutput, err := nix.HasFlakeOutput(opts.FlakePath, "flakeupTemplates"); err != nil {
+		return fmt.Errorf("init: %w: %w", ErrCliUnexpected, err)
+	} else if !hasOutput {
+		return fmt.Errorf("init: %w", ErrCliInitMissingFlakeupTemplateOutput)
 	}
-
-	fmt.Println("Does my flake have the proper output?", hasOutput)
 
 	template, err := nix.GetFlakeOutput[Templates](opts.FlakePath, "flakeupTemplates")
 
+	if err != nil {
+		return fmt.Errorf("init: %s", err)
+	}
+
 	fmt.Println("Got flake output:\n", utils.Prettify(template))
+	return nil
 }
