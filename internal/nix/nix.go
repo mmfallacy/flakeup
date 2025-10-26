@@ -22,7 +22,7 @@ func HasFlakeOutput(flake, output string) (bool, error) {
 	out, err := cmd.Output()
 
 	if err != nil {
-		return false, fmt.Errorf("%w: cannot check if output exists in flake", ErrNixEvalFailed)
+		return false, fmt.Errorf("%w: cannot check if %s output exists in flake", ErrNixEvalFailed, output)
 	}
 
 	return bytes.Equal(bytes.TrimSpace(out), []byte("true")), nil
