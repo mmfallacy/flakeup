@@ -5,7 +5,7 @@ import (
 
 	"github.com/mmfallacy/flakeup/internal/core"
 	"github.com/mmfallacy/flakeup/internal/nix"
-	"github.com/mmfallacy/flakeup/internal/utils"
+	_ "github.com/mmfallacy/flakeup/internal/utils"
 )
 
 type GlobalOptions struct {
@@ -27,12 +27,12 @@ func HandleInit(opts InitOptions) error {
 		return fmt.Errorf("init: %w", ErrCliInitMissingFlakeupTemplateOutput)
 	}
 
-	template, err := nix.GetFlakeOutput[core.Templates](opts.FlakePath, "flakeupTemplates")
+	templates, err := nix.GetFlakeOutput[core.Templates](opts.FlakePath, "flakeupTemplates")
 
 	if err != nil {
 		return fmt.Errorf("init: %s", err)
 	}
 
-	fmt.Println("Got flake output:\n", utils.Prettify(template))
+	templates[opts.Template].Process(opts.OutDir)
 	return nil
 }

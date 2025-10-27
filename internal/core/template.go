@@ -1,5 +1,13 @@
 package core
 
+import (
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
 // JSON schema as structs
 type Templates map[string]Template
 
@@ -31,3 +39,45 @@ const (
 	ConflictIgnore    ConflictAction = "ignore"
 	ConflictAsk       ConflictAction = "ask"
 )
+
+func (T Template) Process(outdir string) error {
+	root := *T.Root
+
+	if !strings.HasPrefix(root, "/nix/store/") {
+		fmt.Println("WARNING: Template path not in the /nix/store/")
+	}
+
+	// Ignore if already created.
+	if err := os.MkdirAll(outdir, 0o755); err != nil {
+		return err
+	}
+
+	// Use fs instead of filepath to keep path strings relative to template root path
+	return fs.WalkDir(os.DirFS(root), ".", func(path string, d fs.DirEntry, err error) error {
+		// Skip root entry
+		if path == "." {
+			return nil
+		}
+
+		fmt.Println("Walking", path)
+
+		rootpath := filepath.Join(root, path)
+		outpath := filepath.Join(outdir, path)
+
+		// Skip Path if error arises when opening. Non-nil return crashes the whole walk.
+		if err != nil {
+			return nil
+		}
+
+		switch mode := d.Type(); {
+		case mode.IsDir():
+			return os.MkdirAll(outpath, 0o755)
+		case mode.IsRegular():
+			return Copy(rootpath, outpath)
+		default:
+			fmt.Println("WARNING: Skipping", path, "as it is neither a regular file or a directory!")
+			return nil
+		}
+
+	})
+}
