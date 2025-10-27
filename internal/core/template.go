@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/mmfallacy/flakeup/internal/utils"
 )
 
 // JSON schema as structs
@@ -89,12 +91,33 @@ func (T Template) Process(outdir string) error {
 		switch mode := d.Type(); {
 		case mode.IsDir():
 			return os.MkdirAll(outpath, 0o755)
-		case mode.IsRegular():
-			return Copy(rootpath, outpath)
 		default:
 			fmt.Println("WARNING: Skipping", path, "as it is neither a regular file or a directory!")
 			return nil
+
+		case mode.IsRegular():
+			// continue
 		}
 
+		var pattern string
+		var match Rule
+
+		for _, key := range sortedRuleKeys {
+			if ok, err := filepath.Match(key, path); err != nil {
+				// Skip Path if error arises when opening. Non-nil return crashes the whole walk.
+				fmt.Println("WARNING: glob matching for key ", pattern, " and path ", path, "produced in an non-nil error")
+				return nil
+			} else if ok {
+				match = (*T.Rules)[key]
+				pattern = key
+				break
+			}
+		}
+
+		if match != (Rule{}) && pattern != "" {
+			fmt.Printf("Here's the matching rule for path %s:\n %s:\n%s\n", path, pattern, utils.Prettify(match))
+		}
+
+		return Copy(rootpath, outpath)
 	})
 }
