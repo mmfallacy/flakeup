@@ -15,10 +15,11 @@ type GlobalOptions struct {
 type InitOptions struct {
 	GlobalOptions
 	Template string
+	OutDir   string
 }
 
 func HandleInit(opts InitOptions) error {
-	fmt.Printf("Cloning template %s from flake %s\n", opts.Template, opts.FlakePath)
+	fmt.Printf("Cloning template %s from flake %s onto %s\n", opts.Template, opts.FlakePath, opts.OutDir)
 
 	if hasOutput, err := nix.HasFlakeOutput(opts.FlakePath, "flakeupTemplates"); err != nil {
 		return fmt.Errorf("init: %w: %w", ErrCliUnexpected, err)

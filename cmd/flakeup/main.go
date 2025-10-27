@@ -17,6 +17,7 @@ var (
 	// Init subcommand
 	initCmd  *flaggy.Subcommand
 	template string
+	outdir   string
 )
 
 func init() {
@@ -38,6 +39,9 @@ func init() {
 	flaggy.AttachSubcommand(initCmd, 1)
 
 	initCmd.AddPositionalValue(&template, "template", 1, true, "Name of the template to initialize.")
+
+	outdir = "."
+	initCmd.AddPositionalValue(&outdir, "outdir", 2, false, "Directory to put the initialized template")
 
 }
 
@@ -65,6 +69,6 @@ func main() {
 
 	globalOpts := cli.GlobalOptions{FlakePath: flake}
 	if initCmd.Used {
-		cli.HandleInit(cli.InitOptions{GlobalOptions: globalOpts, Template: template})
+		cli.HandleInit(cli.InitOptions{GlobalOptions: globalOpts, Template: template, OutDir: outdir})
 	}
 }
