@@ -8,7 +8,7 @@
       template = {
         root = ./template;
         rules = {
-          "*" = {
+          "**/*" = {
             onConflict = "ask";
           };
         };

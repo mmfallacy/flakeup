@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bmatcuk/doublestar"
 	"github.com/mmfallacy/flakeup/internal/utils"
 )
 
@@ -103,7 +104,7 @@ func (T Template) Process(outdir string) error {
 		var match Rule
 
 		for _, key := range sortedRuleKeys {
-			if ok, err := filepath.Match(key, path); err != nil {
+			if ok, err := doublestar.Match(key, path); err != nil {
 				// Skip Path if error arises when opening. Non-nil return crashes the whole walk.
 				fmt.Println("WARNING: glob matching for key ", pattern, " and path ", path, "produced in an non-nil error")
 				return nil
