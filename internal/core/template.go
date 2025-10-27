@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -40,6 +41,20 @@ const (
 	ConflictAsk       ConflictAction = "ask"
 )
 
+func sortMapKeys[M ~map[K]V, K string, V any](m M) []K {
+	sorted := make([]K, 0, len(m))
+
+	for k, _ := range m {
+		sorted = append(sorted, k)
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		return len(sorted[i]) > len(sorted[j])
+	})
+
+	return sorted
+}
+
 func (T Template) Process(outdir string) error {
 	root := *T.Root
 
@@ -51,6 +66,8 @@ func (T Template) Process(outdir string) error {
 	if err := os.MkdirAll(outdir, 0o755); err != nil {
 		return err
 	}
+
+	sortedRuleKeys := sortMapKeys(*T.Rules)
 
 	// Use fs instead of filepath to keep path strings relative to template root path
 	return fs.WalkDir(os.DirFS(root), ".", func(path string, d fs.DirEntry, err error) error {
