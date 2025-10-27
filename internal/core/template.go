@@ -5,11 +5,10 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
-	"github.com/bmatcuk/doublestar"
-	"github.com/mmfallacy/flakeup/internal/utils"
+	"github.com/bmatcuk/doublestar/v4"
+	u "github.com/mmfallacy/flakeup/internal/utils"
 )
 
 // JSON schema as structs
@@ -44,20 +43,6 @@ const (
 	ConflictAsk       ConflictAction = "ask"
 )
 
-func sortMapKeys[M ~map[K]V, K string, V any](m M) []K {
-	sorted := make([]K, 0, len(m))
-
-	for k, _ := range m {
-		sorted = append(sorted, k)
-	}
-
-	sort.Slice(sorted, func(i, j int) bool {
-		return len(sorted[i]) > len(sorted[j])
-	})
-
-	return sorted
-}
-
 func (T Template) Process(outdir string) error {
 	root := *T.Root
 
@@ -65,12 +50,18 @@ func (T Template) Process(outdir string) error {
 		fmt.Println("WARNING: Template path not in the /nix/store/")
 	}
 
+	sortedRuleKeys := u.SortKeysByLength(u.GetKeys(*T.Rules))
+
+	if err := u.AssertEach(sortedRuleKeys, func(el string) bool {
+		return doublestar.ValidatePattern(el)
+	}); err != nil {
+		return fmt.Errorf("template processing: invalid pattern glob! %v", doublestar.ErrBadPattern)
+	}
+
 	// Ignore if already created.
 	if err := os.MkdirAll(outdir, 0o755); err != nil {
 		return err
 	}
-
-	sortedRuleKeys := sortMapKeys(*T.Rules)
 
 	// Use fs instead of filepath to keep path strings relative to template root path
 	return fs.WalkDir(os.DirFS(root), ".", func(path string, d fs.DirEntry, err error) error {
@@ -104,21 +95,19 @@ func (T Template) Process(outdir string) error {
 		var match Rule
 
 		for _, key := range sortedRuleKeys {
-			if ok, err := doublestar.Match(key, path); err != nil {
-				// Skip Path if error arises when opening. Non-nil return crashes the whole walk.
-				fmt.Println("WARNING: glob matching for key ", pattern, " and path ", path, "produced in an non-nil error")
-				return nil
-			} else if ok {
+			if ok := doublestar.MatchUnvalidated(key, path); ok {
 				match = (*T.Rules)[key]
 				pattern = key
 				break
 			}
 		}
 
-		if match != (Rule{}) && pattern != "" {
-			fmt.Printf("Here's the matching rule for path %s:\n %s:\n%s\n", path, pattern, utils.Prettify(match))
+		// Raw copy on no matching rules
+		if match == (Rule{}) && pattern == "" {
+			return Copy(rootpath, outpath)
 		}
 
+		fmt.Printf("Here's the matching rule for path %s:\n %s:\n%s\n", path, pattern, u.Prettify(match))
 		return Copy(rootpath, outpath)
 	})
 }
