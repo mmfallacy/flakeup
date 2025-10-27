@@ -1,14 +1,4 @@
-package cli
-
-// Command-line Options
-type GlobalOptions struct {
-	FlakePath string
-}
-
-type InitOptions struct {
-	GlobalOptions
-	Template string
-}
+package core
 
 // JSON schema as structs
 type Templates map[string]Template
@@ -33,3 +23,11 @@ type Rule struct {
 }
 
 type ConflictAction string
+
+const (
+	ConflictPrepend   ConflictAction = "prepend"
+	ConflictAppend    ConflictAction = "append"
+	ConflictOverwrite ConflictAction = "overwrite"
+	ConflictIgnore    ConflictAction = "ignore"
+	ConflictAsk       ConflictAction = "ask"
+)

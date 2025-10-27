@@ -3,9 +3,19 @@ package cli
 import (
 	"fmt"
 
+	"github.com/mmfallacy/flakeup/internal/core"
 	"github.com/mmfallacy/flakeup/internal/nix"
 	"github.com/mmfallacy/flakeup/internal/utils"
 )
+
+type GlobalOptions struct {
+	FlakePath string
+}
+
+type InitOptions struct {
+	GlobalOptions
+	Template string
+}
 
 func HandleInit(opts InitOptions) error {
 	fmt.Printf("Cloning template %s from flake %s\n", opts.Template, opts.FlakePath)
@@ -16,7 +26,7 @@ func HandleInit(opts InitOptions) error {
 		return fmt.Errorf("init: %w", ErrCliInitMissingFlakeupTemplateOutput)
 	}
 
-	template, err := nix.GetFlakeOutput[Templates](opts.FlakePath, "flakeupTemplates")
+	template, err := nix.GetFlakeOutput[core.Templates](opts.FlakePath, "flakeupTemplates")
 
 	if err != nil {
 		return fmt.Errorf("init: %s", err)
