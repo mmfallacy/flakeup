@@ -11,39 +11,12 @@ import (
 	u "github.com/mmfallacy/flakeup/internal/utils"
 )
 
-// JSON schema as structs
-type Templates map[string]Template
-
-type Template struct {
-	Root       *string      `json:"root"`
-	Parameters *[]Parameter `json:"parameters"`
-	Rules      *Rules       `json:"rules"`
+func push(s *[]Action, el Action) error {
+	*s = append(*s, el)
+	return nil
 }
 
-type Parameter struct {
-	Name *string `json:"name"`
-	// Nullable
-	Prompt  *string `json:"prompt"`
-	Default *string `json:"default"`
-}
-
-type Rules map[string]Rule
-
-type Rule struct {
-	OnConflict *ConflictAction
-}
-
-type ConflictAction string
-
-const (
-	ConflictPrepend   ConflictAction = "prepend"
-	ConflictAppend    ConflictAction = "append"
-	ConflictOverwrite ConflictAction = "overwrite"
-	ConflictIgnore    ConflictAction = "ignore"
-	ConflictAsk       ConflictAction = "ask"
-)
-
-func (T Template) Process(outdir string) error {
+func (T Template) Process(outdir string) ([]Action, error) {
 	root := *T.Root
 
 	if !strings.HasPrefix(root, "/nix/store/") {
@@ -55,34 +28,30 @@ func (T Template) Process(outdir string) error {
 	if err := u.AssertEach(sortedRuleKeys, func(el string) bool {
 		return doublestar.ValidatePattern(el)
 	}); err != nil {
-		return fmt.Errorf("template processing: invalid pattern glob! %v", doublestar.ErrBadPattern)
+		return nil, fmt.Errorf("template processing: invalid pattern glob! %v", doublestar.ErrBadPattern)
 	}
 
-	// Ignore if already created.
-	if err := os.MkdirAll(outdir, 0o755); err != nil {
-		return err
-	}
+	// Create dynamic list with default capacity 10
+	actions := make([]Action, 0, 10)
+
+	// Add action to create output directory
+	push(&actions, ActionMkdir{Desc: "mkdir output directory", Dest: outdir})
 
 	// Use fs instead of filepath to keep path strings relative to template root path
-	return fs.WalkDir(os.DirFS(root), ".", func(path string, d fs.DirEntry, err error) error {
-		// Skip root entry
-		if path == "." {
+	fs.WalkDir(os.DirFS(root), ".", func(path string, d fs.DirEntry, err error) error {
+		// Skip root entry or cases where opening path results into an error
+		if path == "." || err != nil {
 			return nil
 		}
-
-		fmt.Println("Walking", path)
 
 		rootpath := filepath.Join(root, path)
 		outpath := filepath.Join(outdir, path)
 
-		// Skip Path if error arises when opening. Non-nil return crashes the whole walk.
-		if err != nil {
-			return nil
-		}
-
 		switch mode := d.Type(); {
+		// On directory type, add action to mimic template dir tree
+		// This should always push a parent dir before pushing children actions
 		case mode.IsDir():
-			return os.MkdirAll(outpath, 0o755)
+			return push(&actions, ActionMkdir{Desc: fmt.Sprintf("mkdir %s", outpath), Dest: outpath})
 		default:
 			fmt.Println("WARNING: Skipping", path, "as it is neither a regular file or a directory!")
 			return nil
@@ -104,10 +73,75 @@ func (T Template) Process(outdir string) error {
 
 		// Raw copy on no matching rules
 		if match == (Rule{}) && pattern == "" {
-			return Copy(rootpath, outpath)
+			return push(&actions, ActionApply{
+				Desc:    "no matching rule",
+				Src:     rootpath,
+				Dest:    outpath,
+				Pattern: "",
+				Rule:    Rule{},
+				Write:   true,
+			})
 		}
 
-		fmt.Printf("Here's the matching rule for path %s:\n %s:\n%s\n", path, pattern, u.Prettify(match))
-		return Copy(rootpath, outpath)
+		// Handle onConflict Rules
+		// TODO: Refactor! This awfully seems too verbose with multiple sources of truth and unnecessary branching.
+		switch *match.OnConflict {
+		case ConflictPrepend:
+			return push(&actions, ActionApply{
+				Desc:    "prepend",
+				Src:     rootpath,
+				Dest:    outpath,
+				Pattern: pattern,
+				Rule:    match,
+				Write:   true,
+			})
+		case ConflictAppend:
+			return push(&actions, ActionApply{
+				Desc:    "append",
+				Src:     rootpath,
+				Dest:    outpath,
+				Pattern: pattern,
+				Rule:    match,
+				Write:   true,
+			})
+		case ConflictOverwrite:
+			return push(&actions, ActionApply{
+				Desc:    "overwrite",
+				Src:     rootpath,
+				Dest:    outpath,
+				Pattern: pattern,
+				Rule:    match,
+				Write:   true,
+			})
+		case ConflictIgnore:
+			return push(&actions, ActionApply{
+				Desc:    "ignore",
+				Src:     rootpath,
+				Dest:    outpath,
+				Pattern: pattern,
+				Rule:    match,
+				Write:   false,
+			})
+		case ConflictAsk:
+			return push(&actions, ActionAsk{
+				Desc:    "ask",
+				Src:     rootpath,
+				Dest:    outpath,
+				Pattern: pattern,
+				Rule:    match,
+				Default: "n",
+			})
+		default:
+			return push(&actions, ActionAsk{
+				Desc:    "ask by default",
+				Src:     rootpath,
+				Dest:    outpath,
+				Pattern: pattern,
+				Rule:    match,
+				Default: "n",
+			})
+		}
+
 	})
+	return actions, nil
 }

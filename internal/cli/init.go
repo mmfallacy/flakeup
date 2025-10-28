@@ -5,6 +5,7 @@ import (
 
 	"github.com/mmfallacy/flakeup/internal/core"
 	"github.com/mmfallacy/flakeup/internal/nix"
+	"github.com/mmfallacy/flakeup/internal/utils"
 	_ "github.com/mmfallacy/flakeup/internal/utils"
 )
 
@@ -33,6 +34,13 @@ func HandleInit(opts InitOptions) error {
 		return fmt.Errorf("init: %s", err)
 	}
 
-	templates[opts.Template].Process(opts.OutDir)
+	actions, err := templates[opts.Template].Process(opts.OutDir)
+
+	if err != nil {
+		fmt.Printf("Encountered an error! %w\n", err)
+	} else {
+		fmt.Printf("Here are the actions needed to be taken:\n %s\n", utils.Prettify(actions))
+	}
+
 	return nil
 }
