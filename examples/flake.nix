@@ -8,8 +8,14 @@
       template = {
         root = ./template;
         rules = {
-          "**/*" = {
+          "nix/*" = {
             onConflict = "ask";
+          };
+          "*" = {
+            onConflict = "overwrite";
+          };
+          ".envrc" = {
+            onConflict = "ignore";
           };
         };
 
