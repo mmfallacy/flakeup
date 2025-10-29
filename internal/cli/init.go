@@ -19,6 +19,13 @@ type InitOptions struct {
 	OutDir   string
 }
 
+var conflictActionChoices = []core.ConflictAction{
+	core.ConflictPrepend,
+	core.ConflictAppend,
+	core.ConflictOverwrite,
+	core.ConflictIgnore,
+}
+
 func HandleInit(opts InitOptions) error {
 	fmt.Printf("Cloning template %s from flake %s onto %s\n", opts.Template, opts.FlakePath, opts.OutDir)
 
@@ -38,8 +45,35 @@ func HandleInit(opts InitOptions) error {
 
 	if err != nil {
 		fmt.Printf("Encountered an error! %w\n", err)
-	} else {
-		fmt.Printf("Here are the actions needed to be taken:\n %s\n", utils.Prettify(actions))
+		return err
+	}
+
+	for i, a := range actions {
+		action, ok := a.(core.ActionAsk)
+		if !ok {
+			continue
+		}
+
+		answer, err := ask(fmt.Sprintf("conflict at %s", action.Dest), conflictActionChoices)
+
+		if err != nil {
+			return err
+		}
+
+		actions[i] = core.ActionApply{
+			Desc:    string(answer),
+			Src:     action.Src,
+			Dest:    action.Dest,
+			Pattern: action.Pattern,
+			Rule: core.Rule{
+				OnConflict: &answer,
+			},
+			Write: true,
+		}
+	}
+
+	for _, a := range actions {
+		fmt.Println(utils.Prettify(a))
 	}
 
 	return nil
