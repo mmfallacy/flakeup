@@ -2,11 +2,8 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/mmfallacy/flakeup/internal/utils"
 )
 
 type ActionKind string
@@ -34,8 +31,9 @@ type ActionApply struct {
 
 func (a ActionApply) Kind() ActionKind { return ActionKindApply }
 func (a ActionApply) Process() error {
-	fmt.Println("Processing action apply\n", utils.Prettify(a))
-	return nil
+	rootpath := filepath.Join(a.Src, a.Path)
+	outpath := filepath.Join(a.Dest, a.Path)
+	return Copy(rootpath, outpath)
 }
 
 type ActionAsk struct {
