@@ -5,8 +5,6 @@ import (
 
 	"github.com/mmfallacy/flakeup/internal/core"
 	"github.com/mmfallacy/flakeup/internal/nix"
-	"github.com/mmfallacy/flakeup/internal/utils"
-	_ "github.com/mmfallacy/flakeup/internal/utils"
 )
 
 type GlobalOptions struct {
@@ -73,7 +71,7 @@ func HandleInit(opts InitOptions) error {
 	}
 
 	for _, a := range actions {
-		fmt.Println(utils.Prettify(a))
+		a.Process()
 	}
 
 	return nil

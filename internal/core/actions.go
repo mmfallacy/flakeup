@@ -1,6 +1,11 @@
 package core
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/mmfallacy/flakeup/internal/utils"
+)
 
 type ActionKind string
 
@@ -26,6 +31,7 @@ type ActionApply struct {
 
 func (a ActionApply) Kind() ActionKind { return ActionKindApply }
 func (a ActionApply) Process() error {
+	fmt.Println("Processing action apply\n", utils.Prettify(a))
 	return nil
 }
 
@@ -54,5 +60,6 @@ type ActionMkdir struct {
 func (a ActionMkdir) Kind() ActionKind { return ActionKindMkdir }
 
 func (a ActionMkdir) Process() error {
+	fmt.Println("Processing action mkdir\n", utils.Prettify(a))
 	return nil
 }
