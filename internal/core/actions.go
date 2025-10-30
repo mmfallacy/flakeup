@@ -3,6 +3,8 @@ package core
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/mmfallacy/flakeup/internal/utils"
 )
@@ -24,6 +26,7 @@ type ActionApply struct {
 	Desc    string
 	Src     string
 	Dest    string
+	Path    string
 	Pattern string
 	Rule    Rule
 	Write   bool
@@ -39,6 +42,7 @@ type ActionAsk struct {
 	Desc    string
 	Src     string
 	Dest    string
+	Path    string
 	Pattern string
 	Rule    Rule
 	Default string
@@ -55,11 +59,12 @@ func (a ActionAsk) Process() error {
 type ActionMkdir struct {
 	Desc string
 	Dest string
+	Path string
 }
 
 func (a ActionMkdir) Kind() ActionKind { return ActionKindMkdir }
 
 func (a ActionMkdir) Process() error {
-	fmt.Println("Processing action mkdir\n", utils.Prettify(a))
-	return nil
+	outpath := filepath.Join(a.Dest, a.Path)
+	return os.Mkdir(outpath, 0o755)
 }

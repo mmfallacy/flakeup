@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/mmfallacy/flakeup/internal/core"
 	"github.com/mmfallacy/flakeup/internal/nix"
@@ -39,7 +40,23 @@ func HandleInit(opts InitOptions) error {
 		return fmt.Errorf("init: %s", err)
 	}
 
-	actions, err := templates[opts.Template].Process(opts.OutDir)
+	dir, err := os.MkdirTemp("", "flakeup-")
+	if err != nil {
+		fmt.Printf("Encountered an error! %w\n", err)
+		return err
+	}
+
+	fmt.Println("Created tmp dir at", dir)
+
+	// Cleanup
+	defer func() {
+		return
+		if err := os.RemoveAll(dir); err != nil {
+			fmt.Printf("Encountered an error! %w\n", err)
+		}
+	}()
+
+	actions, err := templates[opts.Template].Process(dir)
 
 	if err != nil {
 		fmt.Printf("Encountered an error! %w\n", err)
@@ -62,6 +79,7 @@ func HandleInit(opts InitOptions) error {
 			Desc:    string(answer),
 			Src:     action.Src,
 			Dest:    action.Dest,
+			Path:    action.Path,
 			Pattern: action.Pattern,
 			Rule: core.Rule{
 				OnConflict: &answer,

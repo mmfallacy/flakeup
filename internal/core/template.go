@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
@@ -67,7 +66,7 @@ func (T Template) Process(outdir string) ([]Action, error) {
 	actions := make([]Action, 0, 10)
 
 	// Add action to create output directory
-	push(&actions, ActionMkdir{Desc: "mkdir output directory", Dest: outdir})
+	push(&actions, ActionMkdir{Desc: "mkdir output directory", Dest: outdir, Path: ""})
 
 	// Use fs instead of filepath to keep path strings relative to template root path
 	fs.WalkDir(os.DirFS(root), ".", func(path string, d fs.DirEntry, err error) error {
@@ -76,14 +75,11 @@ func (T Template) Process(outdir string) ([]Action, error) {
 			return nil
 		}
 
-		rootpath := filepath.Join(root, path)
-		outpath := filepath.Join(outdir, path)
-
 		switch mode := d.Type(); {
 		// On directory type, add action to mimic template dir tree
 		// This should always push a parent dir before pushing children actions
 		case mode.IsDir():
-			return push(&actions, ActionMkdir{Desc: fmt.Sprintf("mkdir %s", outpath), Dest: outpath})
+			return push(&actions, ActionMkdir{Desc: fmt.Sprintf("mkdir %s", outdir), Dest: outdir, Path: path})
 		default:
 			fmt.Println("WARNING: Skipping", path, "as it is neither a regular file or a directory!")
 			return nil
@@ -107,8 +103,9 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		if match == (Rule{}) && pattern == "" {
 			return push(&actions, ActionApply{
 				Desc:    "no matching rule",
-				Src:     rootpath,
-				Dest:    outpath,
+				Src:     root,
+				Dest:    outdir,
+				Path:    path,
 				Pattern: "",
 				Rule:    Rule{},
 				Write:   true,
@@ -121,8 +118,9 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		case ConflictPrepend:
 			return push(&actions, ActionApply{
 				Desc:    "prepend",
-				Src:     rootpath,
-				Dest:    outpath,
+				Src:     root,
+				Dest:    outdir,
+				Path:    path,
 				Pattern: pattern,
 				Rule:    match,
 				Write:   true,
@@ -130,8 +128,9 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		case ConflictAppend:
 			return push(&actions, ActionApply{
 				Desc:    "append",
-				Src:     rootpath,
-				Dest:    outpath,
+				Src:     root,
+				Dest:    outdir,
+				Path:    path,
 				Pattern: pattern,
 				Rule:    match,
 				Write:   true,
@@ -139,8 +138,9 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		case ConflictOverwrite:
 			return push(&actions, ActionApply{
 				Desc:    "overwrite",
-				Src:     rootpath,
-				Dest:    outpath,
+				Src:     root,
+				Dest:    outdir,
+				Path:    path,
 				Pattern: pattern,
 				Rule:    match,
 				Write:   true,
@@ -148,8 +148,9 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		case ConflictIgnore:
 			return push(&actions, ActionApply{
 				Desc:    "ignore",
-				Src:     rootpath,
-				Dest:    outpath,
+				Src:     root,
+				Dest:    outdir,
+				Path:    path,
 				Pattern: pattern,
 				Rule:    match,
 				Write:   false,
@@ -157,8 +158,9 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		case ConflictAsk:
 			return push(&actions, ActionAsk{
 				Desc:    "ask",
-				Src:     rootpath,
-				Dest:    outpath,
+				Src:     root,
+				Dest:    outdir,
+				Path:    path,
 				Pattern: pattern,
 				Rule:    match,
 				Default: "n",
@@ -166,8 +168,9 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		default:
 			return push(&actions, ActionAsk{
 				Desc:    "ask by default",
-				Src:     rootpath,
-				Dest:    outpath,
+				Src:     root,
+				Dest:    outdir,
+				Path:    path,
 				Pattern: pattern,
 				Rule:    match,
 				Default: "n",
