@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
@@ -99,10 +100,13 @@ func (T Template) Process(outdir string) ([]Action, error) {
 			}
 		}
 
+		_, err = os.Stat(filepath.Join(outdir, path))
+		exists := os.IsExist(err)
 		// Raw copy on no matching rules
-		if match == (Rule{}) && pattern == "" {
+
+		if exists || (match == (Rule{}) && pattern == "") {
 			return push(&actions, ActionApply{
-				Desc:    "no matching rule",
+				Desc:    "clean",
 				Src:     root,
 				Dest:    outdir,
 				Path:    path,
