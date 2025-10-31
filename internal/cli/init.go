@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/mmfallacy/flakeup/internal/core"
 	"github.com/mmfallacy/flakeup/internal/nix"
@@ -56,7 +57,7 @@ func HandleInit(opts InitOptions) error {
 		}
 	}()
 
-	actions, err := templates[opts.Template].Process(dir)
+	actions, err := templates[opts.Template].Process(opts.OutDir)
 
 	if err != nil {
 		fmt.Printf("Encountered an error! %w\n", err)
@@ -64,32 +65,45 @@ func HandleInit(opts InitOptions) error {
 	}
 
 	for i, a := range actions {
-		action, ok := a.(core.ActionAsk)
-		if !ok {
+		// For all actions, temporarily set Dest to tempdir to enable rollbacks on failures
+		switch action := a.(type) {
+
+		default:
+			return fmt.Errorf("init: %w: unhandled action type", ErrCliUnexpected)
+
+		// Unfortunately, we can't merge these two cases in the same area as go cannot validate a Dest property
+		case core.ActionApply:
+			action.Dest = dir
 			continue
+
+		case core.ActionMkdir:
+			action.Dest = dir
+			continue
+
+		case core.ActionAsk:
+			answer, err := ask(fmt.Sprintf("conflict at %s", filepath.Join(action.Dest, action.Path)), conflictActionChoices)
+
+			if err != nil {
+				return err
+			}
+
+			actions[i] = core.ActionApply{
+				Desc:    string(answer),
+				Src:     action.Src,
+				Dest:    dir,
+				Path:    action.Path,
+				Pattern: action.Pattern,
+				Rule: core.Rule{
+					OnConflict: &answer,
+				},
+				Write: true,
+			}
 		}
 
-		answer, err := ask(fmt.Sprintf("conflict at %s", action.Dest), conflictActionChoices)
-
-		if err != nil {
-			return err
-		}
-
-		actions[i] = core.ActionApply{
-			Desc:    string(answer),
-			Src:     action.Src,
-			Dest:    action.Dest,
-			Path:    action.Path,
-			Pattern: action.Pattern,
-			Rule: core.Rule{
-				OnConflict: &answer,
-			},
-			Write: true,
-		}
 	}
 
 	for _, a := range actions {
-		a.Process()
+		_ = a.Process()
 	}
 
 	return nil
