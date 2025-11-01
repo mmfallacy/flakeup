@@ -97,7 +97,7 @@ func HandleInit(opts InitOptions) error {
 				Rule: core.Rule{
 					OnConflict: &answer,
 				},
-				Write: true,
+				Write: answer != core.ConflictIgnore,
 			}
 		}
 
