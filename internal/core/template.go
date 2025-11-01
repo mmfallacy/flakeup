@@ -67,7 +67,7 @@ func (T Template) Process(outdir string) ([]Action, error) {
 	actions := make([]Action, 0, 10)
 
 	// Add action to create output directory
-	push(&actions, ActionMkdir{Desc: "mkdir output directory", Dest: outdir, Path: ""})
+	push(&actions, &ActionMkdir{Desc: "mkdir output directory", Dest: outdir, Path: ""})
 
 	// Use fs instead of filepath to keep path strings relative to template root path
 	fs.WalkDir(os.DirFS(root), ".", func(path string, d fs.DirEntry, err error) error {
@@ -80,7 +80,7 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		// On directory type, add action to mimic template dir tree
 		// This should always push a parent dir before pushing children actions
 		case mode.IsDir():
-			return push(&actions, ActionMkdir{Desc: fmt.Sprintf("mkdir %s", outdir), Dest: outdir, Path: path})
+			return push(&actions, &ActionMkdir{Desc: fmt.Sprintf("mkdir %s", outdir), Dest: outdir, Path: path})
 		default:
 			fmt.Println("WARNING: Skipping", path, "as it is neither a regular file or a directory!")
 			return nil
@@ -105,7 +105,7 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		// Raw copy on no matching rules
 
 		if exists || (match == (Rule{}) && pattern == "") {
-			return push(&actions, ActionApply{
+			return push(&actions, &ActionApply{
 				Desc:    "clean",
 				Src:     root,
 				Dest:    outdir,
@@ -120,7 +120,7 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		// TODO: Refactor! This awfully seems too verbose with multiple sources of truth and unnecessary branching.
 		switch *match.OnConflict {
 		case ConflictPrepend:
-			return push(&actions, ActionApply{
+			return push(&actions, &ActionApply{
 				Desc:    "prepend",
 				Src:     root,
 				Dest:    outdir,
@@ -130,7 +130,7 @@ func (T Template) Process(outdir string) ([]Action, error) {
 				Write:   true,
 			})
 		case ConflictAppend:
-			return push(&actions, ActionApply{
+			return push(&actions, &ActionApply{
 				Desc:    "append",
 				Src:     root,
 				Dest:    outdir,
@@ -140,7 +140,7 @@ func (T Template) Process(outdir string) ([]Action, error) {
 				Write:   true,
 			})
 		case ConflictOverwrite:
-			return push(&actions, ActionApply{
+			return push(&actions, &ActionApply{
 				Desc:    "overwrite",
 				Src:     root,
 				Dest:    outdir,
@@ -150,7 +150,7 @@ func (T Template) Process(outdir string) ([]Action, error) {
 				Write:   true,
 			})
 		case ConflictIgnore:
-			return push(&actions, ActionApply{
+			return push(&actions, &ActionApply{
 				Desc:    "ignore",
 				Src:     root,
 				Dest:    outdir,
@@ -160,7 +160,7 @@ func (T Template) Process(outdir string) ([]Action, error) {
 				Write:   false,
 			})
 		case ConflictAsk:
-			return push(&actions, ActionAsk{
+			return push(&actions, &ActionAsk{
 				Desc:    "ask",
 				Src:     root,
 				Dest:    outdir,
@@ -169,7 +169,7 @@ func (T Template) Process(outdir string) ([]Action, error) {
 				Rule:    match,
 			})
 		default:
-			return push(&actions, ActionAsk{
+			return push(&actions, &ActionAsk{
 				Desc:    "ask by default",
 				Src:     root,
 				Dest:    outdir,

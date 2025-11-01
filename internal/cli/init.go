@@ -64,23 +64,24 @@ func HandleInit(opts InitOptions) error {
 		return err
 	}
 
-	for i, a := range actions {
+	for i := range actions {
 		// For all actions, temporarily set Dest to tempdir to enable rollbacks on failures
-		switch action := a.(type) {
+		// Use index to access as actual struct, not by a copy
+		switch action := actions[i].(type) {
 
 		default:
 			return fmt.Errorf("init: %w: unhandled action type", ErrCliUnexpected)
 
 		// Unfortunately, we can't merge these two cases in the same area as go cannot validate a Dest property
-		case core.ActionApply:
+		case *core.ActionApply:
 			action.Dest = dir
 			continue
 
-		case core.ActionMkdir:
+		case *core.ActionMkdir:
 			action.Dest = dir
 			continue
 
-		case core.ActionAsk:
+		case *core.ActionAsk:
 			answer, err := ask(fmt.Sprintf("conflict at %s", filepath.Join(action.Dest, action.Path)), conflictActionChoices)
 
 			if err != nil {
