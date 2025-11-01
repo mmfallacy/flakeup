@@ -92,6 +92,18 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		var pattern string
 		var match Rule
 
+		if _, err := os.Stat(filepath.Join(outdir, path)); os.IsNotExist(err) {
+			return push(&actions, &ActionApply{
+				Desc:    "no existing file",
+				Src:     root,
+				Dest:    outdir,
+				Path:    path,
+				Pattern: "",
+				Rule:    Rule{},
+				Write:   true,
+			})
+		}
+
 		for _, key := range sortedRuleKeys {
 			if ok := doublestar.MatchUnvalidated(key, path); ok {
 				match = (*T.Rules)[key]
@@ -100,13 +112,10 @@ func (T Template) Process(outdir string) ([]Action, error) {
 			}
 		}
 
-		_, err = os.Stat(filepath.Join(outdir, path))
-		exists := os.IsExist(err)
 		// Raw copy on no matching rules
-
-		if exists || (match == (Rule{}) && pattern == "") {
+		if match == (Rule{}) && pattern == "" {
 			return push(&actions, &ActionApply{
-				Desc:    "clean",
+				Desc:    "no matching rule",
 				Src:     root,
 				Dest:    outdir,
 				Path:    path,
