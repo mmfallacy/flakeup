@@ -33,6 +33,7 @@ func (a ActionApply) Kind() ActionKind { return ActionKindApply }
 func (a ActionApply) Process() error {
 	rootpath := filepath.Join(a.Src, a.Path)
 	outpath := filepath.Join(a.Dest, a.Path)
+	// return nil
 	return Copy(rootpath, outpath)
 }
 
@@ -43,7 +44,6 @@ type ActionAsk struct {
 	Path    string
 	Pattern string
 	Rule    Rule
-	Default string
 }
 
 func (a ActionAsk) Kind() ActionKind { return ActionKindAsk }

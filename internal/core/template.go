@@ -167,7 +167,6 @@ func (T Template) Process(outdir string) ([]Action, error) {
 				Path:    path,
 				Pattern: pattern,
 				Rule:    match,
-				Default: "n",
 			})
 		default:
 			return push(&actions, ActionAsk{
@@ -177,7 +176,6 @@ func (T Template) Process(outdir string) ([]Action, error) {
 				Path:    path,
 				Pattern: pattern,
 				Rule:    match,
-				Default: "n",
 			})
 		}
 
