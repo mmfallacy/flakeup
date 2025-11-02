@@ -33,8 +33,29 @@ func (a ActionApply) Kind() ActionKind { return ActionKindApply }
 func (a ActionApply) Process() error {
 	rootpath := filepath.Join(a.Src, a.Path)
 	outpath := filepath.Join(a.Dest, a.Path)
-	// return nil
-	return Copy(rootpath, outpath)
+	if !a.Write {
+		return nil
+	}
+
+	if a.Rule == (Rule{}) {
+		return CopyClean(rootpath, outpath)
+	}
+
+	switch *a.Rule.OnConflict {
+	case ConflictAppend:
+		return CopyAppend(rootpath, outpath)
+	case ConflictPrepend:
+		return CopyPrepend(rootpath, outpath)
+	case ConflictOverwrite:
+		return CopyOverwrite(rootpath, outpath)
+	case ConflictIgnore:
+		return nil
+	case ConflictAsk:
+		return errors.New("action process got unhandled ask")
+	default:
+		return errors.New("action process got unhandled conflict type")
+	}
+
 }
 
 type ActionAsk struct {
