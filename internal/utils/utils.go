@@ -32,3 +32,5 @@ func AssertEach[T any](slice []T, fn func(T) bool) error {
 	}
 	return nil
 }
+
+var ErrNotImplemented = errors.New("Function not yet implemented")
