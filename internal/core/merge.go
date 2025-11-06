@@ -6,7 +6,7 @@ import (
 )
 
 // b is nil-able
-func MergeInto(a string, b *string, c string, overwrite bool) error {
+func MergeInto(a string, b *string, c string) error {
 	pre, err := os.Open(a)
 
 	if err != nil {
@@ -16,11 +16,7 @@ func MergeInto(a string, b *string, c string, overwrite bool) error {
 	defer pre.Close()
 
 	// Presume file at c does not exist, throw otherwise
-	flags := os.O_CREATE | os.O_EXCL
-	if overwrite {
-		flags = os.O_CREATE | os.O_TRUNC
-	}
-	out, err := os.OpenFile(c, flags, 0o644)
+	out, err := os.OpenFile(c, os.O_CREATE|os.O_EXCL, 0o644)
 
 	if err != nil {
 		return err
