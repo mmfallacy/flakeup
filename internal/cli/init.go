@@ -63,24 +63,8 @@ func HandleInit(opts InitOptions) error {
 	}
 
 	for i := range actions {
-		// For all actions, temporarily set Dest to tempdir to enable rollbacks on failure
-
-		switch action := actions[i].Action.(type) {
-		default:
-			return fmt.Errorf("init: %w: unsupported action type", ErrCliUnexpected)
-		case *core.Mkdir:
-			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
-		case *core.Exact:
-			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
-		case *core.Append:
-			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
-		case *core.Prepend:
-			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
-		// noop, so don't bother resetting Dest
-		case *core.Ignore:
-			continue
-
-		case *core.Ask:
+		// Resolve asks first
+		if action, ok := actions[i].Action.(*core.Ask); ok {
 			answer, err := ask(fmt.Sprintf("conflict at %s", action.Dest.Resolve()), conflictActionChoices)
 
 			if err != nil {
@@ -100,7 +84,26 @@ func HandleInit(opts InitOptions) error {
 				Action:  resolved,
 			}
 		}
+		// For all resolved actions, temporarily set Dest to tempdir to enable rollbacks on failure
+		switch action := actions[i].Action.(type) {
+		default:
+			return fmt.Errorf("init: %w: unsupported action type", ErrCliUnexpected)
+		case *core.Mkdir:
+			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
+		case *core.Exact:
+			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
+		case *core.Append:
+			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
+		case *core.Prepend:
+			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
+		// noop, so don't bother resetting Dest
+		case *core.Ignore:
+			continue
 
+		// This should have already been resolved
+		case *core.Ask:
+			continue
+		}
 	}
 
 	fmt.Println(utils.Prettify(actions))
