@@ -67,7 +67,7 @@ type Mkdir struct {
 }
 
 func (a Mkdir) Do() error {
-	return os.Mkdir(a.Dest.Resolve(), 0o755)
+	return os.MkdirAll(a.Dest.Resolve(), 0o755)
 }
 
 // Action.(Exact): Copies a file from Src to Dest assuming no conflicts
