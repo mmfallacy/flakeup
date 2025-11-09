@@ -16,7 +16,7 @@ func MergeInto(a string, b *string, c string) error {
 	defer pre.Close()
 
 	// Presume file at c does not exist, throw otherwise
-	out, err := os.OpenFile(c, os.O_CREATE|os.O_EXCL, 0o644)
+	out, err := os.OpenFile(c, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
 
 	if err != nil {
 		return err
@@ -41,7 +41,7 @@ func MergeInto(a string, b *string, c string) error {
 
 	defer post.Close()
 
-	if _, err = io.Copy(out, pre); err != nil {
+	if _, err = io.Copy(out, post); err != nil {
 		return err
 	}
 
