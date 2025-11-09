@@ -104,14 +104,38 @@ func HandleInit(opts InitOptions) error {
 		case *core.Ask:
 			continue
 		}
+
+		// Process action entry
+		if err = actions[i].Process(); err != nil {
+			return err
+		}
 	}
 
-	fmt.Println(utils.Prettify(actions))
-	for _, a := range actions {
-		_ = a.Process()
+	// Summarize changes
+	for _, action := range actions {
+		// Reset tempdir back to outdir
+		switch action := action.Action.(type) {
+		default:
+			return fmt.Errorf("init: %w: unsupported action type", ErrCliUnexpected)
+		case *core.Mkdir:
+			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
+		case *core.Exact:
+			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
+		case *core.Append:
+			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
+		case *core.Prepend:
+			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
+		// noop, so don't bother resetting Dest
+		case *core.Ignore:
+		// This should have already been resolved
+		case *core.Ask:
+		}
+		fmt.Println(action)
 	}
 
-	fmt.Println("Created tmp dir copy at", dir)
+	//TODO: Ask user if they want to apply the template changes
+
+	//TODO: On confirm, apply template from tempdir
 
 	return nil
 }
