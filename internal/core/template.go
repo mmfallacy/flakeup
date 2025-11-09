@@ -119,12 +119,12 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 			}
 		}
 
-		// Raw copy on no matching rules
+		// Ask by default on no matching rules
 		if match == (Rule{}) && pattern == "" {
 			return push(&actions, &ActionEntry{
-				Desc:    fmt.Sprintf("exact %s", path),
+				Desc:    fmt.Sprintf("ask %s", path),
 				Pattern: "",
-				Action: &Exact{
+				Action: &Ask{
 					Src:  u.Path{Root: root, Rel: path},
 					Dest: u.Path{Root: outdir, Rel: path},
 				},
