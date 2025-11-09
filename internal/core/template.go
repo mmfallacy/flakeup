@@ -43,12 +43,12 @@ const (
 	ConflictAsk       ConflictAction = "ask"
 )
 
-func push(s *[]Action, el Action) error {
-	*s = append(*s, el)
+func push(s *[]ActionEntry, el *ActionEntry) error {
+	*s = append(*s, *el)
 	return nil
 }
 
-func (T Template) Process(outdir string) ([]Action, error) {
+func (T Template) Process(outdir string) ([]ActionEntry, error) {
 	root := *T.Root
 
 	if !strings.HasPrefix(root, "/nix/store/") {
@@ -64,10 +64,15 @@ func (T Template) Process(outdir string) ([]Action, error) {
 	}
 
 	// Create dynamic list with default capacity 10
-	actions := make([]Action, 0, 10)
+	actions := make([]ActionEntry, 0, 10)
 
 	// Add action to create output directory
-	push(&actions, &ActionMkdir{Desc: "mkdir output directory", Dest: outdir, Path: ""})
+	push(&actions, &ActionEntry{
+		Desc:    "mkdir output directory",
+		Pattern: "",
+		Kind:    "mkdir",
+		Action:  &Mkdir{Dest: u.Path{Root: outdir, Rel: ""}},
+	})
 
 	// Use fs instead of filepath to keep path strings relative to template root path
 	fs.WalkDir(os.DirFS(root), ".", func(path string, d fs.DirEntry, err error) error {
@@ -80,7 +85,12 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		// On directory type, add action to mimic template dir tree
 		// This should always push a parent dir before pushing children actions
 		case mode.IsDir():
-			return push(&actions, &ActionMkdir{Desc: fmt.Sprintf("mkdir %s", outdir), Dest: outdir, Path: path})
+			return push(&actions, &ActionEntry{
+				Desc:    fmt.Sprintf("mkdir %s", path),
+				Pattern: "",
+				Kind:    "mkdir",
+				Action:  &Mkdir{Dest: u.Path{Root: outdir, Rel: path}},
+			})
 		default:
 			fmt.Println("WARNING: Skipping", path, "as it is neither a regular file or a directory!")
 			return nil
@@ -93,14 +103,14 @@ func (T Template) Process(outdir string) ([]Action, error) {
 		var match Rule
 
 		if _, err := os.Stat(filepath.Join(outdir, path)); os.IsNotExist(err) {
-			return push(&actions, &ActionApply{
-				Desc:    "no existing file",
-				Src:     root,
-				Dest:    outdir,
-				Path:    path,
+			return push(&actions, &ActionEntry{
+				Desc:    fmt.Sprintf("exact %s", path),
 				Pattern: "",
-				Rule:    Rule{},
-				Write:   true,
+				Kind:    "exact",
+				Action: &Exact{
+					Src:  u.Path{Root: root, Rel: path},
+					Dest: u.Path{Root: outdir, Rel: path},
+				},
 			})
 		}
 
@@ -114,77 +124,71 @@ func (T Template) Process(outdir string) ([]Action, error) {
 
 		// Raw copy on no matching rules
 		if match == (Rule{}) && pattern == "" {
-			return push(&actions, &ActionApply{
-				Desc:    "no matching rule",
-				Src:     root,
-				Dest:    outdir,
-				Path:    path,
+			return push(&actions, &ActionEntry{
+				Desc:    fmt.Sprintf("exact %s", path),
 				Pattern: "",
-				Rule:    Rule{},
-				Write:   true,
+				Action: &Exact{
+					Kind: "exact",
+					Src:  u.Path{Root: root, Rel: path},
+					Dest: u.Path{Root: outdir, Rel: path},
+				},
 			})
 		}
 
 		// Handle onConflict Rules
-		// TODO: Refactor! This awfully seems too verbose with multiple sources of truth and unnecessary branching.
 		switch *match.OnConflict {
 		case ConflictPrepend:
-			return push(&actions, &ActionApply{
-				Desc:    "prepend",
-				Src:     root,
-				Dest:    outdir,
-				Path:    path,
+			return push(&actions, &ActionEntry{
+				Desc:    fmt.Sprintf("prepend %s", path),
 				Pattern: pattern,
-				Rule:    match,
-				Write:   true,
+				Kind:    "prepend",
+				Action: &Prepend{
+					Base:   u.Path{Root: root, Rel: path},
+					Prefix: u.Path{Root: outdir, Rel: path},
+					Dest:   u.Path{Root: outdir, Rel: path},
+				},
 			})
 		case ConflictAppend:
-			return push(&actions, &ActionApply{
-				Desc:    "append",
-				Src:     root,
-				Dest:    outdir,
-				Path:    path,
+			return push(&actions, &ActionEntry{
+				Desc:    fmt.Sprintf("append %s", path),
 				Pattern: pattern,
-				Rule:    match,
-				Write:   true,
+				Kind:    "append",
+				Action: &Append{
+					Base:   u.Path{Root: root, Rel: path},
+					Suffix: u.Path{Root: outdir, Rel: path},
+					Dest:   u.Path{Root: outdir, Rel: path},
+				},
 			})
 		case ConflictOverwrite:
-			return push(&actions, &ActionApply{
-				Desc:    "overwrite",
-				Src:     root,
-				Dest:    outdir,
-				Path:    path,
+			return push(&actions, &ActionEntry{
+				Desc:    fmt.Sprintf("overwrite %s", path),
 				Pattern: pattern,
-				Rule:    match,
-				Write:   true,
+				Kind:    "overwrite",
+				Action: &Exact{
+					Src:  u.Path{Root: root, Rel: path},
+					Dest: u.Path{Root: outdir, Rel: path},
+				},
 			})
 		case ConflictIgnore:
-			return push(&actions, &ActionApply{
-				Desc:    "ignore",
-				Src:     root,
-				Dest:    outdir,
-				Path:    path,
+			return push(&actions, &ActionEntry{
+				Desc:    fmt.Sprintf("ignore %s", path),
 				Pattern: pattern,
-				Rule:    match,
-				Write:   false,
+				Kind:    "ignore",
+				Action: &Ignore{
+					Src:  u.Path{Root: root, Rel: path},
+					Dest: u.Path{Root: outdir, Rel: path},
+				},
 			})
-		case ConflictAsk:
-			return push(&actions, &ActionAsk{
-				Desc:    "ask",
-				Src:     root,
-				Dest:    outdir,
-				Path:    path,
-				Pattern: pattern,
-				Rule:    match,
-			})
+		// Ask by default
+		// case ConflictAsk:
 		default:
-			return push(&actions, &ActionAsk{
-				Desc:    "ask by default",
-				Src:     root,
-				Dest:    outdir,
-				Path:    path,
+			return push(&actions, &ActionEntry{
+				Desc:    fmt.Sprintf("ask %s", path),
 				Pattern: pattern,
-				Rule:    match,
+				Action: &Ask{
+					Src:  u.Path{Root: root, Rel: path},
+					Dest: u.Path{Root: outdir, Rel: path},
+				},
 			})
 		}
 
