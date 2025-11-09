@@ -24,7 +24,7 @@ func ask[T ~string](question string, choices []T) (T, error) {
 		prettyChoices += "[" + string(choice[:1]) + "]" + string(choice[1:])
 	}
 
-	fmt.Print(s.Warnf("%s %s:\n\t", s.Icons.Warn, question), s.Info(prettyChoices), fmt.Sprintf(" %s ", s.Icons.Ask))
+	fmt.Print(s.Warnf("%s\n\t", question), s.Info(prettyChoices), fmt.Sprintf(" %s ", s.Icons.Ask))
 
 	if !scanner.Scan() {
 		return "", scanner.Err()

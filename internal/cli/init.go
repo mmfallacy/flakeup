@@ -66,7 +66,7 @@ func HandleInit(opts InitOptions) error {
 	for i := range actions {
 		// Resolve asks first
 		if action, ok := actions[i].Action.(*core.Ask); ok {
-			answer, err := ask(s.Warnf("Conflict at %s", action.Dest.Resolve()), conflictActionChoices)
+			answer, err := ask(s.Warnf("%s Conflict at %s", s.Icons.Warn, action.Dest.Resolve()), conflictActionChoices)
 
 			if err != nil {
 				return err
