@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	s "github.com/mmfallacy/flakeup/internal/style"
 )
 
 var scanner = bufio.NewScanner(os.Stdin)
@@ -17,12 +19,12 @@ func ask[T ~string](question string, choices []T) (T, error) {
 
 	for i, choice := range choices {
 		if i > 0 {
-			prettyChoices += "/"
+			prettyChoices += " | "
 		}
 		prettyChoices += "[" + string(choice[:1]) + "]" + string(choice[1:])
 	}
 
-	fmt.Printf("%s: %s? ", question, prettyChoices)
+	fmt.Print(s.Warnf("%s %s:\n\t", s.Icons.Warn, question), s.Info(prettyChoices), fmt.Sprintf(" %s ", s.Icons.Ask))
 
 	if !scanner.Scan() {
 		return "", scanner.Err()
