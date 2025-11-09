@@ -55,7 +55,7 @@ func (a Ask) Resolve(to ConflictAction) (Action, error) {
 			Dest:   a.Dest,
 		}, nil
 	case ConflictOverwrite:
-		return &Exact{
+		return &Overwrite{
 			Src:  a.Src,
 			Dest: a.Dest,
 		}, nil
@@ -85,7 +85,6 @@ func (a Mkdir) String() string {
 }
 
 // Action.(Exact): Copies a file from Src to Dest assuming no conflicts
-// We will hoist Overwrite behavior here as we initially write to a tempdir
 type Exact struct {
 	Src  u.Path
 	Dest u.Path
@@ -99,7 +98,20 @@ func (a Exact) String() string {
 	return fmt.Sprintf("copy: %s -> %s", a.Src.Shorten(), a.Dest.Shorten())
 }
 
-// TODO: Should I merge Append and Prepend to combined type?
+// Action.(Overwrite): Copies a file from Src to Dest assuming no conflicts
+type Overwrite struct {
+	Src  u.Path
+	Dest u.Path
+}
+
+func (a Overwrite) Do() error {
+	return MergeInto(a.Src.Resolve(), nil, a.Dest.Resolve())
+}
+
+func (a Overwrite) String() string {
+	return fmt.Sprintf("overwrite: %s -> %s", a.Src.Shorten(), a.Dest.Shorten())
+}
+
 // Action.(Append): Copies template from Src to Dest, appending to existing file
 type Append struct {
 	Base   u.Path
