@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	u "github.com/mmfallacy/flakeup/internal/utils"
@@ -18,8 +19,13 @@ func (a ActionEntry) Process() error {
 	return a.Action.Do()
 }
 
+func (a ActionEntry) String() string {
+	return a.Action.String()
+}
+
 type Action interface {
 	Do() error
+	String() string
 }
 
 // Action.(Ask): Asks the user on what to do
@@ -61,6 +67,10 @@ func (a Ask) Resolve(to ConflictAction) (Action, error) {
 	}
 }
 
+func (a Ask) String() string {
+	return fmt.Sprintf("ask: %s", a.Dest.Shorten())
+}
+
 // Action.(Mkdir): Creates a directory
 type Mkdir struct {
 	Dest u.Path
@@ -68,6 +78,10 @@ type Mkdir struct {
 
 func (a Mkdir) Do() error {
 	return os.MkdirAll(a.Dest.Resolve(), 0o755)
+}
+
+func (a Mkdir) String() string {
+	return fmt.Sprintf("mkdir: %s", a.Dest.Shorten())
 }
 
 // Action.(Exact): Copies a file from Src to Dest assuming no conflicts
@@ -79,6 +93,10 @@ type Exact struct {
 
 func (a Exact) Do() error {
 	return MergeInto(a.Src.Resolve(), nil, a.Dest.Resolve())
+}
+
+func (a Exact) String() string {
+	return fmt.Sprintf("copy: %s -> %s", a.Src.Shorten(), a.Dest.Shorten())
 }
 
 // TODO: Should I merge Append and Prepend to combined type?
@@ -94,6 +112,10 @@ func (a Append) Do() error {
 	return MergeInto(a.Base.Resolve(), &s, a.Dest.Resolve())
 }
 
+func (a Append) String() string {
+	return fmt.Sprintf("append: %s + %s -> %s", a.Base.Shorten(), a.Suffix.Shorten(), a.Dest.Shorten())
+}
+
 // Action.(Prepend): Copies template from Src to Dest, prepending to existing file
 type Prepend struct {
 	Base   u.Path
@@ -106,6 +128,10 @@ func (a Prepend) Do() error {
 	return MergeInto(a.Base.Resolve(), &p, a.Dest.Resolve())
 }
 
+func (a Prepend) String() string {
+	return fmt.Sprintf("prepend: %s + %s -> %s", a.Prefix.Shorten(), a.Base.Shorten(), a.Dest.Shorten())
+}
+
 // Action.(Ignore): Noop
 type Ignore struct {
 	Src  u.Path
@@ -114,4 +140,8 @@ type Ignore struct {
 
 func (a Ignore) Do() error {
 	return nil
+}
+
+func (a Ignore) String() string {
+	return fmt.Sprintf("ignore: %s", a.Dest.Shorten())
 }
