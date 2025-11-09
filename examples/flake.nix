@@ -11,9 +11,6 @@
           "nix/*" = {
             onConflict = "ask";
           };
-          "*" = {
-            onConflict = "overwrite";
-          };
           ".envrc" = {
             onConflict = "ignore";
           };
