@@ -3,10 +3,10 @@ package cli
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/mmfallacy/flakeup/internal/core"
 	"github.com/mmfallacy/flakeup/internal/nix"
+	"github.com/mmfallacy/flakeup/internal/utils"
 )
 
 type GlobalOptions struct {
@@ -47,8 +47,6 @@ func HandleInit(opts InitOptions) error {
 		return err
 	}
 
-	fmt.Println("Created tmp dir at", dir)
-
 	// Cleanup
 	defer func() {
 		return
@@ -65,47 +63,53 @@ func HandleInit(opts InitOptions) error {
 	}
 
 	for i := range actions {
-		// For all actions, temporarily set Dest to tempdir to enable rollbacks on failures
-		// Use index to access as actual struct, not by a copy
-		switch action := actions[i].(type) {
+		// For all actions, temporarily set Dest to tempdir to enable rollbacks on failure
 
+		switch action := actions[i].Action.(type) {
 		default:
-			return fmt.Errorf("init: %w: unhandled action type", ErrCliUnexpected)
-
-		// Unfortunately, we can't merge these two cases in the same area as go cannot validate a Dest property
-		case *core.ActionApply:
-			action.Dest = dir
+			return fmt.Errorf("init: %w: unsupported action type", ErrCliUnexpected)
+		case *core.Mkdir:
+			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
+		case *core.Exact:
+			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
+		case *core.Append:
+			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
+		case *core.Prepend:
+			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
+		// noop, so don't bother resetting Dest
+		case *core.Ignore:
 			continue
 
-		case *core.ActionMkdir:
-			action.Dest = dir
-			continue
-
-		case *core.ActionAsk:
-			answer, err := ask(fmt.Sprintf("conflict at %s", filepath.Join(action.Dest, action.Path)), conflictActionChoices)
+		case *core.Ask:
+			answer, err := ask(fmt.Sprintf("conflict at %s", action.Dest.Resolve()), conflictActionChoices)
 
 			if err != nil {
 				return err
 			}
 
-			actions[i] = core.ActionApply{
-				Desc:    string(answer),
-				Src:     action.Src,
-				Dest:    dir,
-				Path:    action.Path,
-				Pattern: action.Pattern,
-				Rule: core.Rule{
-					OnConflict: &answer,
-				},
-				Write: answer != core.ConflictIgnore,
+			resolved, err := action.Resolve(answer)
+
+			if err != nil || resolved == nil {
+				return err
+			}
+
+			prev := actions[i]
+			actions[i] = core.ActionEntry{
+				Desc:    "resolved ask",
+				Pattern: prev.Pattern,
+				Kind:    string(answer),
+				Action:  resolved,
 			}
 		}
 
 	}
 
+	fmt.Println(utils.Prettify(actions))
 	for _, a := range actions {
 		_ = a.Process()
 	}
+
+	fmt.Println("Created tmp dir copy at", dir)
 
 	return nil
 }
