@@ -70,7 +70,6 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 	push(&actions, &ActionEntry{
 		Desc:    "mkdir output directory",
 		Pattern: "",
-		Kind:    "mkdir",
 		Action:  &Mkdir{Dest: u.Path{Root: outdir, Rel: ""}},
 	})
 
@@ -88,7 +87,6 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 			return push(&actions, &ActionEntry{
 				Desc:    fmt.Sprintf("mkdir %s", path),
 				Pattern: "",
-				Kind:    "mkdir",
 				Action:  &Mkdir{Dest: u.Path{Root: outdir, Rel: path}},
 			})
 		default:
@@ -106,7 +104,6 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 			return push(&actions, &ActionEntry{
 				Desc:    fmt.Sprintf("exact %s", path),
 				Pattern: "",
-				Kind:    "exact",
 				Action: &Exact{
 					Src:  u.Path{Root: root, Rel: path},
 					Dest: u.Path{Root: outdir, Rel: path},
@@ -128,7 +125,6 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 				Desc:    fmt.Sprintf("exact %s", path),
 				Pattern: "",
 				Action: &Exact{
-					Kind: "exact",
 					Src:  u.Path{Root: root, Rel: path},
 					Dest: u.Path{Root: outdir, Rel: path},
 				},
@@ -141,7 +137,6 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 			return push(&actions, &ActionEntry{
 				Desc:    fmt.Sprintf("prepend %s", path),
 				Pattern: pattern,
-				Kind:    "prepend",
 				Action: &Prepend{
 					Base:   u.Path{Root: root, Rel: path},
 					Prefix: u.Path{Root: outdir, Rel: path},
@@ -152,7 +147,6 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 			return push(&actions, &ActionEntry{
 				Desc:    fmt.Sprintf("append %s", path),
 				Pattern: pattern,
-				Kind:    "append",
 				Action: &Append{
 					Base:   u.Path{Root: root, Rel: path},
 					Suffix: u.Path{Root: outdir, Rel: path},
@@ -163,7 +157,6 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 			return push(&actions, &ActionEntry{
 				Desc:    fmt.Sprintf("overwrite %s", path),
 				Pattern: pattern,
-				Kind:    "overwrite",
 				Action: &Exact{
 					Src:  u.Path{Root: root, Rel: path},
 					Dest: u.Path{Root: outdir, Rel: path},
@@ -173,7 +166,6 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 			return push(&actions, &ActionEntry{
 				Desc:    fmt.Sprintf("ignore %s", path),
 				Pattern: pattern,
-				Kind:    "ignore",
 				Action: &Ignore{
 					Src:  u.Path{Root: root, Rel: path},
 					Dest: u.Path{Root: outdir, Rel: path},

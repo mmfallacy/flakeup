@@ -97,7 +97,6 @@ func HandleInit(opts InitOptions) error {
 			actions[i] = core.ActionEntry{
 				Desc:    "resolved ask",
 				Pattern: prev.Pattern,
-				Kind:    string(answer),
 				Action:  resolved,
 			}
 		}
