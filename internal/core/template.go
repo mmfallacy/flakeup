@@ -157,7 +157,7 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 			return push(&actions, &ActionEntry{
 				Desc:    fmt.Sprintf("overwrite %s", path),
 				Pattern: pattern,
-				Action: &Exact{
+				Action: &Overwrite{
 					Src:  u.Path{Root: root, Rel: path},
 					Dest: u.Path{Root: outdir, Rel: path},
 				},

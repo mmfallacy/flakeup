@@ -92,6 +92,8 @@ func HandleInit(opts InitOptions) error {
 			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
 		case *core.Exact:
 			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
+		case *core.Overwrite:
+			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
 		case *core.Append:
 			action.Dest = utils.Path{Root: dir, Rel: action.Dest.Rel}
 		case *core.Prepend:
@@ -120,6 +122,8 @@ func HandleInit(opts InitOptions) error {
 		case *core.Mkdir:
 			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
 		case *core.Exact:
+			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
+		case *core.Overwrite:
 			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
 		case *core.Append:
 			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
