@@ -11,14 +11,14 @@ type ActionEntry struct {
 	Desc    string
 	Pattern string
 
-	Action _Action
+	Action Action
 }
 
 func (a ActionEntry) Process() error {
 	return a.Action.Do()
 }
 
-type _Action interface {
+type Action interface {
 	Do() error
 }
 
@@ -29,10 +29,10 @@ type Ask struct {
 }
 
 func (a Ask) Do() error {
-	return ErrActionAskProcessAttempt
+	return errors.New("action ask do attempt")
 }
 
-func (a Ask) Resolve(to ConflictAction) (_Action, error) {
+func (a Ask) Resolve(to ConflictAction) (Action, error) {
 	switch to {
 	default:
 		return nil, errors.New("action ask unhandled conflict action")
