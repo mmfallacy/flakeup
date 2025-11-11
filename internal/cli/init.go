@@ -114,6 +114,8 @@ func HandleInit(opts InitOptions) error {
 		}
 	}
 
+	fmt.Println()
+	fmt.Println(s.Info("Summary of changes:"))
 	// Summarize changes
 	for _, action := range actions {
 		// Reset tempdir back to outdir
