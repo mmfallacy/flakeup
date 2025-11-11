@@ -145,9 +145,18 @@ func HandleInit(opts InitOptions) error {
 		}
 	}
 
-	//TODO: Ask user if they want to apply the template changes
+	fmt.Println()
+	//Ask user if they want to apply the template changes
+	answer, err := ask(s.Info("Apply the changes? "), []string{"yes", "no"})
 
-	//TODO: On confirm, apply template from tempdir
+	if err != nil {
+		return err
+	}
+
+	if answer == "no" {
+		fmt.Println(s.Errf("%s User cancelled", s.Icons.Err))
+		return nil
+	}
 
 	return nil
 }
