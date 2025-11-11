@@ -6,6 +6,9 @@ var (
 	Info  = text.FgBlue.Sprint
 	Infof = text.FgBlue.Sprintf
 
+	Success  = text.FgGreen.Sprint
+	Successf = text.FgGreen.Sprintf
+
 	Warn  = text.FgYellow.Sprint
 	Warnf = text.FgYellow.Sprintf
 
@@ -30,6 +33,7 @@ type icons struct {
 	Conflict string
 	Ignore   string
 	Ask      string
+	Success  string
 }
 
 var Icons = icons{
@@ -40,4 +44,5 @@ var Icons = icons{
 	Conflict: "󰬳",
 	Ignore:   "⊘",
 	Ask:      "?",
+	Success:  "󰄹",
 }
