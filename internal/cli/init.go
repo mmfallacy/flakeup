@@ -158,5 +158,11 @@ func HandleInit(opts InitOptions) error {
 		return nil
 	}
 
+	//On confirm, apply template from tempdir
+	if err := core.CopyRecursiveOverwrite(dir, opts.OutDir); err != nil {
+		return err
+	}
+
+	fmt.Println(s.Successf("%s Succesfully applied template %s onto directory %s", s.Icons.Success, opts.Template, opts.OutDir))
 	return nil
 }
