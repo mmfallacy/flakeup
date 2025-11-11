@@ -136,8 +136,8 @@ type Prepend struct {
 }
 
 func (a Prepend) Do() error {
-	p := a.Prefix.Resolve()
-	return MergeInto(a.Base.Resolve(), &p, a.Dest.Resolve())
+	b := a.Base.Resolve()
+	return MergeInto(a.Prefix.Resolve(), &b, a.Dest.Resolve())
 }
 
 func (a Prepend) String() string {
