@@ -49,12 +49,8 @@ func HandleInit(opts InitOptions) error {
 	}
 
 	// Cleanup
-	defer func() {
-		// return
-		if err := os.RemoveAll(dir); err != nil {
-			fmt.Printf("Encountered an error! %w\n", err)
-		}
-	}()
+	// NOTE: Checking for errors aren't really actionable here. On error, rely on tmpfs to delete tmpdir on reboot
+	defer os.RemoveAll(dir)
 
 	actions, err := templates[opts.Template].Process(opts.OutDir)
 
