@@ -72,11 +72,7 @@ func HandleInit(opts InitOptions) error {
 				return err
 			}
 
-			resolved, err := action.Resolve(answer)
-
-			if err != nil || resolved == nil {
-				return err
-			}
+			resolved := action.Resolve(answer)
 
 			prev := actions[i]
 			actions[i] = core.ActionEntry{

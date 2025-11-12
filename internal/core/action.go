@@ -38,32 +38,32 @@ func (a Ask) Do() error {
 	return errors.New("action ask do attempt")
 }
 
-func (a Ask) Resolve(to ConflictAction) (Action, error) {
+func (a Ask) Resolve(to ConflictAction) Action {
 	switch to {
 	default:
-		return nil, errors.New("action ask unhandled conflict action")
+		panic("Action Ask given invalid ConflictAction")
 	case ConflictAppend:
 		return &Append{
 			Base:   a.Dest,
 			Suffix: a.Src,
 			Dest:   a.Dest,
-		}, nil
+		}
 	case ConflictPrepend:
 		return &Prepend{
 			Base:   a.Dest,
 			Prefix: a.Src,
 			Dest:   a.Dest,
-		}, nil
+		}
 	case ConflictOverwrite:
 		return &Overwrite{
 			Src:  a.Src,
 			Dest: a.Dest,
-		}, nil
+		}
 	case ConflictIgnore:
 		return &Ignore{
 			Src:  a.Src,
 			Dest: a.Dest,
-		}, nil
+		}
 	}
 }
 
