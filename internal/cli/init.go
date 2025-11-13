@@ -42,16 +42,6 @@ func HandleInit(opts InitOptions) error {
 		return fmt.Errorf("init: %s", err)
 	}
 
-	dir, err := os.MkdirTemp("", "flakeup-")
-	if err != nil {
-		fmt.Printf("Encountered an error! %w\n", err)
-		return err
-	}
-
-	// Cleanup
-	// NOTE: Checking for errors aren't really actionable here. On error, rely on tmpfs to delete tmpdir on reboot
-	defer os.RemoveAll(dir)
-
 	actions, err := templates[opts.Template].Process(opts.OutDir)
 
 	if err != nil {
@@ -59,8 +49,8 @@ func HandleInit(opts InitOptions) error {
 		return err
 	}
 
+	// Resolve all asks first
 	for i := range actions {
-		// Resolve asks first
 		if action, ok := actions[i].Action.(*core.Ask); ok {
 			answer, err := ask(s.Warnf("%s Conflict at %s", s.Icons.Warn, action.Dest.Resolve()), conflictActionChoices)
 
@@ -77,7 +67,46 @@ func HandleInit(opts InitOptions) error {
 				Action:  resolved,
 			}
 		}
-		// For all resolved actions, temporarily set Dest to tempdir to enable rollbacks on failure
+	}
+
+	fmt.Println()
+	fmt.Println(s.Info("Summary of changes:"))
+	// Summarize changes
+	for _, action := range actions {
+		switch action := action.Action.(type) {
+		default:
+			return fmt.Errorf("init: %w: unsupported action type", ErrCliUnexpected)
+		case *core.Mkdir:
+			fmt.Println(s.Mkdir(action))
+		case *core.Exact:
+			fmt.Println(s.Clean(action))
+		case *core.Overwrite:
+			fmt.Println(s.Conflict(action))
+		case *core.Append:
+			fmt.Println(s.Conflict(action))
+		case *core.Prepend:
+			fmt.Println(s.Conflict(action))
+		case *core.Ignore:
+			fmt.Println(s.Ignore(action))
+		// This should have already been resolved
+		case *core.Ask:
+
+		}
+	}
+
+	// Create temporary directory to host changes first to not mutate the target directory prematurely
+	dir, err := os.MkdirTemp("", "flakeup-")
+	if err != nil {
+		fmt.Printf("Encountered an error! %w\n", err)
+		return err
+	}
+
+	// Cleanup
+	// NOTE: Checking for errors aren't really actionable here. On error, rely on tmpfs to delete tmpdir on reboot
+	defer os.RemoveAll(dir)
+
+	// Apply changes to tempdir first
+	for i := range actions {
 		switch action := actions[i].Action.(type) {
 		default:
 			return fmt.Errorf("init: %w: unsupported action type", ErrCliUnexpected)
@@ -103,37 +132,6 @@ func HandleInit(opts InitOptions) error {
 		// Process action entry
 		if err = actions[i].Process(); err != nil {
 			return err
-		}
-	}
-
-	fmt.Println()
-	fmt.Println(s.Info("Summary of changes:"))
-	// Summarize changes
-	for _, action := range actions {
-		// Reset tempdir back to outdir
-		switch action := action.Action.(type) {
-		default:
-			return fmt.Errorf("init: %w: unsupported action type", ErrCliUnexpected)
-		case *core.Mkdir:
-			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
-			fmt.Println(s.Mkdir(action))
-		case *core.Exact:
-			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
-			fmt.Println(s.Clean(action))
-		case *core.Overwrite:
-			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
-			fmt.Println(s.Conflict(action))
-		case *core.Append:
-			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
-			fmt.Println(s.Conflict(action))
-		case *core.Prepend:
-			action.Dest = utils.Path{Root: opts.OutDir, Rel: action.Dest.Rel}
-			fmt.Println(s.Conflict(action))
-		// noop, so don't bother resetting Dest
-		case *core.Ignore:
-			fmt.Println(s.Ignore(action))
-		// This should have already been resolved
-		case *core.Ask:
 		}
 	}
 
