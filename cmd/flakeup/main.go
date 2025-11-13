@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -22,6 +23,11 @@ var (
 	dryRun bool
 )
 
+var globalOpts = cli.GlobalOptions{}
+var initOpts = cli.InitOptions{
+	GlobalOptions: &globalOpts,
+}
+
 func init() {
 	flaggy.SetName("flakeup")
 	flaggy.SetDescription(`
@@ -29,7 +35,7 @@ func init() {
 	Nix flake projects from custom templates with advanced features like
 	conflict resolution and argument substitution.
 	`)
-	flaggy.String(&flake, "f", "flake", `Specify the flake template source (e.g 'github:user/repo', '~/.flake') 
+	flaggy.String(&globalOpts.FlakePath, "f", "flake", `Specify the flake template source (e.g 'github:user/repo', '~/.flake') 
 
 		    Precedence: --flake flag > $FLAKEUP_FLAKE > $FLAKE > $HOME/.nixconfig.`)
 	flaggy.SetVersion(version)
@@ -40,12 +46,12 @@ func init() {
 	initCmd.Description = "Initialize a new flake project from a template."
 	flaggy.AttachSubcommand(initCmd, 1)
 
-	initCmd.AddPositionalValue(&template, "template", 1, true, "Name of the template to initialize.")
+	initCmd.AddPositionalValue(&initOpts.Template, "template", 1, true, "Name of the template to initialize.")
 
 	outdir = "."
-	initCmd.AddPositionalValue(&outdir, "outdir", 2, false, "Directory to put the initialized template")
+	initCmd.AddPositionalValue(&initOpts.OutDir, "outdir", 2, false, "Directory to put the initialized template")
 
-	initCmd.Bool(&dryRun, "", "dry-run", "Show changes only, do not apply.")
+	initCmd.Bool(&initOpts.DryRun, "", "dry-run", "Show changes only, do not apply.")
 
 }
 
@@ -68,11 +74,11 @@ func getFlakePath() string {
 
 func main() {
 	if flake == "" {
-		flake = getFlakePath()
+		globalOpts.FlakePath = getFlakePath()
 	}
 
-	globalOpts := cli.GlobalOptions{FlakePath: flake}
 	if initCmd.Used {
-		cli.HandleInit(cli.InitOptions{GlobalOptions: globalOpts, Template: template, OutDir: outdir})
+		err := cli.HandleInit(initOpts)
+		fmt.Println(err)
 	}
 }

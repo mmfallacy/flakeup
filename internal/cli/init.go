@@ -15,9 +15,9 @@ type GlobalOptions struct {
 }
 
 type InitOptions struct {
-	GlobalOptions
-	Template string
-	OutDir   string
+	GlobalOptions *GlobalOptions
+	Template      string
+	OutDir        string
 
 	DryRun bool
 }
@@ -30,15 +30,15 @@ var conflictActionChoices = []core.ConflictAction{
 }
 
 func HandleInit(opts InitOptions) error {
-	fmt.Println(s.Infof("Cloning template %s from flake %s onto %s", opts.Template, opts.FlakePath, opts.OutDir))
+	fmt.Println(s.Infof("Cloning template %s from flake %s onto %s", opts.Template, opts.GlobalOptions.FlakePath, opts.OutDir))
 
-	if hasOutput, err := nix.HasFlakeOutput(opts.FlakePath, "flakeupTemplates"); err != nil {
+	if hasOutput, err := nix.HasFlakeOutput(opts.GlobalOptions.FlakePath, "flakeupTemplates"); err != nil {
 		return fmt.Errorf("init: %w: %w", ErrCliUnexpected, err)
 	} else if !hasOutput {
 		return fmt.Errorf("init: %w", ErrCliInitMissingFlakeupTemplateOutput)
 	}
 
-	templates, err := nix.GetFlakeOutput[core.Templates](opts.FlakePath, "flakeupTemplates")
+	templates, err := nix.GetFlakeOutput[core.Templates](opts.GlobalOptions.FlakePath, "flakeupTemplates")
 
 	if err != nil {
 		return fmt.Errorf("init: %s", err)
