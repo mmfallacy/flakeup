@@ -13,14 +13,8 @@ import (
 var version = "0.0.1"
 
 var (
-	// Global flake flag
-	flake string
 	// Init subcommand
-	initCmd  *flaggy.Subcommand
-	template string
-	outdir   string
-
-	dryRun bool
+	initCmd *flaggy.Subcommand
 )
 
 var globalOpts = cli.GlobalOptions{}
@@ -48,7 +42,7 @@ func init() {
 
 	initCmd.AddPositionalValue(&initOpts.Template, "template", 1, true, "Name of the template to initialize.")
 
-	outdir = "."
+	initOpts.OutDir = "."
 	initCmd.AddPositionalValue(&initOpts.OutDir, "outdir", 2, false, "Directory to put the initialized template")
 
 	initCmd.Bool(&initOpts.DryRun, "", "dry-run", "Show changes only, do not apply.")
@@ -73,7 +67,8 @@ func getFlakePath() string {
 }
 
 func main() {
-	if flake == "" {
+	// If FlakePath isn't supplied by the user, get it from environment or fallback to default
+	if globalOpts.FlakePath == "" {
 		globalOpts.FlakePath = getFlakePath()
 	}
 
