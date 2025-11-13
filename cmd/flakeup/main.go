@@ -18,6 +18,8 @@ var (
 	initCmd  *flaggy.Subcommand
 	template string
 	outdir   string
+
+	dryRun bool
 )
 
 func init() {
@@ -42,6 +44,8 @@ func init() {
 
 	outdir = "."
 	initCmd.AddPositionalValue(&outdir, "outdir", 2, false, "Directory to put the initialized template")
+
+	initCmd.Bool(&dryRun, "", "dry-run", "Show changes only, do not apply.")
 
 }
 

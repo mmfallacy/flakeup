@@ -18,6 +18,8 @@ type InitOptions struct {
 	GlobalOptions
 	Template string
 	OutDir   string
+
+	DryRun bool
 }
 
 var conflictActionChoices = []core.ConflictAction{
@@ -92,6 +94,12 @@ func HandleInit(opts InitOptions) error {
 		case *core.Ask:
 
 		}
+	}
+
+	if opts.DryRun {
+		fmt.Println()
+		fmt.Println(s.Info("No changes applied as --dry-run is supplied"))
+		return nil
 	}
 
 	// Create temporary directory to host changes first to not mutate the target directory prematurely
