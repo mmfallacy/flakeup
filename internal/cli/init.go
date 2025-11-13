@@ -16,10 +16,12 @@ type GlobalOptions struct {
 
 type InitOptions struct {
 	GlobalOptions *GlobalOptions
-	Template      string
-	OutDir        string
-
-	DryRun bool
+	// Positionals
+	Template string
+	OutDir   string
+	// Flags
+	DryRun    bool
+	NoConfirm bool
 }
 
 var conflictActionChoices = []core.ConflictAction{
@@ -144,16 +146,19 @@ func HandleInit(opts InitOptions) error {
 	}
 
 	fmt.Println()
-	//Ask user if they want to apply the template changes
-	answer, err := ask(s.Info("Apply the changes? "), []string{"yes", "no"})
 
-	if err != nil {
-		return err
-	}
+	// Ask user if they want to apply the template changes
+	if !opts.NoConfirm {
+		answer, err := ask(s.Info("Apply the changes? "), []string{"yes", "no"})
 
-	if answer == "no" {
-		fmt.Println(s.Errf("%s User cancelled", s.Icons.Err))
-		return nil
+		if err != nil {
+			return err
+		}
+
+		if answer == "no" {
+			fmt.Println(s.Errf("%s User cancelled", s.Icons.Err))
+			return nil
+		}
 	}
 
 	//On confirm, apply template from tempdir

@@ -23,7 +23,7 @@
 - [ ] `flakeupTemplates` may specify specific arguments per template(`ARG1,ARG2,...`) with their defaults. These would substitute their values in any file of the template that contains `@@ARG1@@,@@ARG2@@,...`
 - [ ] when arbitrary flags like `--ARG1 somevalue` are passed, it will override the replacement string for ALL matching substitutes.
 - [x] `--dry-run`: only show summary
-- [ ] `--no-confirm`: ask to apply template by default. when `--no-confirm` is passed, automatically apply after summary
+- [x] `--no-confirm`: ask to apply template by default. when `--no-confirm` is passed, automatically apply after summary
 - [ ] `--no-conflict-ask [prepend|append|overwrite|ignore]`: do not ask on conflicting files without rules/ with "ask" rule, automatically use passed response
 - [ ] `--no-substitute`: do not ask for parameter values. do not do substitution entirely.
 - [ ] `flakeupTemplates.<templates>.init.defaultFlags`. default flags for init

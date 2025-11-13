@@ -46,6 +46,7 @@ func init() {
 	initCmd.AddPositionalValue(&initOpts.OutDir, "outdir", 2, false, "Directory to put the initialized template")
 
 	initCmd.Bool(&initOpts.DryRun, "", "dry-run", "Show changes only, do not apply.")
+	initCmd.Bool(&initOpts.NoConfirm, "c", "no-confirm", "Apply template changes automatically")
 
 }
 
