@@ -20,8 +20,9 @@ type InitOptions struct {
 	Template string
 	OutDir   string
 	// Flags
-	DryRun    bool
-	NoConfirm bool
+	DryRun          bool
+	NoConfirm       bool
+	ConflictDefault string
 }
 
 var conflictActionChoices = []core.ConflictAction{
@@ -56,10 +57,21 @@ func HandleInit(opts InitOptions) error {
 	// Resolve all asks first
 	for i := range actions {
 		if action, ok := actions[i].Action.(*core.Ask); ok {
-			answer, err := ask(s.Warnf("%s Conflict at %s", s.Icons.Warn, action.Dest.Resolve()), conflictActionChoices)
+			var answer core.ConflictAction
 
-			if err != nil {
-				return err
+			if opts.ConflictDefault == "" {
+				answer, err = ask(s.Warnf("%s Conflict at %s", s.Icons.Warn, action.Dest.Resolve()), conflictActionChoices)
+
+				if err != nil {
+					return err
+				}
+			} else {
+				answer, ok = utils.LooseMapStringToType(opts.ConflictDefault, conflictActionChoices)
+
+				if !ok {
+					// TODO: Fix errors and decide when to escalate to main.go or when to handle and panic in init.go
+					return fmt.Errorf("Invalid flag passed to --conflict-default")
+				}
 			}
 
 			resolved := action.Resolve(answer)

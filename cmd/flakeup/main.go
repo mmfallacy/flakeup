@@ -47,6 +47,7 @@ func init() {
 
 	initCmd.Bool(&initOpts.DryRun, "", "dry-run", "Show changes only, do not apply.")
 	initCmd.Bool(&initOpts.NoConfirm, "c", "no-confirm", "Apply template changes automatically")
+	initCmd.String(&initOpts.ConflictDefault, "d", "conflict-default", "On asks, set this as default conflict resolution")
 
 }
 

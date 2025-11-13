@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	s "github.com/mmfallacy/flakeup/internal/style"
+	"github.com/mmfallacy/flakeup/internal/utils"
 )
 
 var scanner = bufio.NewScanner(os.Stdin)
@@ -32,18 +33,9 @@ func ask[T ~string](question string, choices []T) (T, error) {
 
 	answer := strings.ToLower(strings.TrimSpace(scanner.Text()))
 
-	for _, choice := range choices {
-		if len(answer) < 1 {
-			return "", ErrAskInvalidAnswer
-		}
-		if answer == string(choice) {
-			return choice, nil
-		}
-		// match prefix
-		if len(choice) >= len(answer) && string(choice)[:len(answer)] == answer {
-			return choice, nil
-		}
+	if mapped, ok := utils.LooseMapStringToType(answer, choices); ok {
+		return mapped, nil
+	} else {
+		return "", ErrAskInvalidAnswer
 	}
-
-	return "", ErrAskInvalidAnswer
 }
