@@ -34,3 +34,20 @@ func AssertEach[T any](slice []T, fn func(T) bool) error {
 }
 
 var ErrNotImplemented = errors.New("Function not yet implemented")
+
+func LooseMapStringToType[T ~string](val string, choices []T) (T, bool) {
+	for _, choice := range choices {
+		if len(val) < 1 {
+			return "", false
+		}
+		if val == string(choice) {
+			return choice, true
+		}
+		// prefix matching
+		if len(choice) >= len(val) && string(choice)[:len(val)] == val {
+			return choice, true
+		}
+	}
+
+	return "", false
+}
