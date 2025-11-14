@@ -15,10 +15,15 @@ var version = "0.0.1"
 var (
 	// Init subcommand
 	initCmd *flaggy.Subcommand
+	showCmd *flaggy.Subcommand
 )
 
 var globalOpts = cli.GlobalOptions{}
 var initOpts = cli.InitOptions{
+	GlobalOptions: &globalOpts,
+}
+
+var showOpts = cli.ShowOptions{
 	GlobalOptions: &globalOpts,
 }
 
@@ -49,6 +54,11 @@ func init() {
 	initCmd.Bool(&initOpts.NoConfirm, cli.NoConfirm.Short, cli.NoConfirm.Full, cli.NoConfirm.Desc)
 	initCmd.String(&initOpts.ConflictDefault, cli.ConflictDefault.Short, cli.ConflictDefault.Full, cli.ConflictDefault.Desc)
 
+	showCmd = flaggy.NewSubcommand("show")
+	showCmd.Description = "Show list of templates or list of rules associated to a template"
+	flaggy.AttachSubcommand(showCmd, 1)
+
+	showCmd.AddPositionalValue(&showOpts.Template, "template", 1, false, "Name of the template to initialize.")
 }
 
 // Get Flake Path from other source if flag is unset
@@ -74,8 +84,12 @@ func main() {
 		globalOpts.FlakePath = getFlakePath()
 	}
 
-	if initCmd.Used {
+	switch true {
+	case initCmd.Used:
 		err := cli.HandleInit(&initOpts)
+		fmt.Println(err)
+	case showCmd.Used:
+		err := cli.HandleShow(&showOpts)
 		fmt.Println(err)
 	}
 }
