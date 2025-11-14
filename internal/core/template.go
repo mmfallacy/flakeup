@@ -12,6 +12,14 @@ import (
 )
 
 // JSON schema as structs
+type Config struct {
+	DefaultFlags *DefaultFlags `json:"defaultFlags"`
+	Templates    Templates     `json:"templates"`
+}
+type DefaultFlags struct {
+	Init []string
+}
+
 type Templates map[string]Template
 
 type Template struct {

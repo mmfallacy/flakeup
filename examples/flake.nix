@@ -5,23 +5,31 @@
 
   outputs = inputs: {
     flakeupTemplates = {
-      template = {
-        root = ./template;
-        rules = {
-          "nix/*" = {
-            onConflict = "ask";
-          };
-          ".envrc" = {
-            onConflict = "ignore";
-          };
-        };
-
-        parameters = [
-          {
-            name = "ARG1";
-            prompt = "Specify Argument 1";
-          }
+      defaultFlags = {
+        init = [
+          "--no-confirm"
+          "-d i"
         ];
+      };
+      templates = {
+        template = {
+          root = ./template;
+          rules = {
+            "nix/*" = {
+              onConflict = "ask";
+            };
+            ".envrc" = {
+              onConflict = "ignore";
+            };
+          };
+
+          parameters = [
+            {
+              name = "ARG1";
+              prompt = "Specify Argument 1";
+            }
+          ];
+        };
       };
     };
   };
