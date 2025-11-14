@@ -11,49 +11,15 @@ import (
 	u "github.com/mmfallacy/flakeup/internal/utils"
 )
 
-// JSON schema as structs
-type Config struct {
-	DefaultFlags *DefaultFlags `json:"defaultFlags"`
-	Templates    Templates     `json:"templates"`
+func push(s *[]ActionEntry, el *ActionEntry) error {
+	*s = append(*s, *el)
+	return nil
 }
-type DefaultFlags struct {
-	Init []string
-}
-
-type Templates map[string]Template
 
 type Template struct {
 	Root       *string      `json:"root"`
 	Parameters *[]Parameter `json:"parameters"`
 	Rules      *Rules       `json:"rules"`
-}
-
-type Parameter struct {
-	Name *string `json:"name"`
-	// Nullable
-	Prompt  *string `json:"prompt"`
-	Default *string `json:"default"`
-}
-
-type Rules map[string]Rule
-
-type Rule struct {
-	OnConflict *ConflictAction
-}
-
-type ConflictAction string
-
-const (
-	ConflictPrepend   ConflictAction = "prepend"
-	ConflictAppend    ConflictAction = "append"
-	ConflictOverwrite ConflictAction = "overwrite"
-	ConflictIgnore    ConflictAction = "ignore"
-	ConflictAsk       ConflictAction = "ask"
-)
-
-func push(s *[]ActionEntry, el *ActionEntry) error {
-	*s = append(*s, *el)
-	return nil
 }
 
 func (T Template) Process(outdir string) ([]ActionEntry, error) {
