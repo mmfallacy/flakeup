@@ -26,8 +26,7 @@
 - [x] `--no-confirm`: ask to apply template by default. when `--no-confirm` is passed, automatically apply after summary
 - [x] `-d` `--conflict-default [prepend|append|overwrite|ignore]`: do not ask on conflicting files without rules/ with "ask" rule, automatically use passed response
 - [ ] `--no-substitute`: do not ask for parameter values. do not do substitution entirely.
-- [ ] `flakeupTemplates.<templates>.init.defaultFlags`. default flags for init
-- [ ] `flakeupTemplates.<templates>.defaultFlags`.for all
+- [x] `flakeupTemplates.defaultFlags.<subcommand>`. default flags for each subcommand
 - [ ] nix package
 - [ ] nixpkgs package
 

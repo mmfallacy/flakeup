@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mmfallacy/flakeup/internal/core"
 	"github.com/mmfallacy/flakeup/internal/nix"
@@ -32,7 +33,7 @@ var conflictActionChoices = []core.ConflictAction{
 	core.ConflictIgnore,
 }
 
-func HandleInit(opts InitOptions) error {
+func HandleInit(opts *InitOptions) error {
 	fmt.Println(s.Infof("Cloning template %s from flake %s onto %s", opts.Template, opts.GlobalOptions.FlakePath, opts.OutDir))
 
 	if hasOutput, err := nix.HasFlakeOutput(opts.GlobalOptions.FlakePath, "flakeupTemplates"); err != nil {
@@ -41,13 +42,39 @@ func HandleInit(opts InitOptions) error {
 		return fmt.Errorf("init: %w", ErrCliInitMissingFlakeupTemplateOutput)
 	}
 
-	templates, err := nix.GetFlakeOutput[core.Templates](opts.GlobalOptions.FlakePath, "flakeupTemplates")
+	conf, err := nix.GetFlakeOutput[core.Config](opts.GlobalOptions.FlakePath, "flakeupTemplates")
 
 	if err != nil {
 		return fmt.Errorf("init: %s", err)
 	}
 
-	actions, err := templates[opts.Template].Process(opts.OutDir)
+	defaultFlags := conf.DefaultFlags
+
+	if defaultFlags != nil && defaultFlags.Init != nil {
+		for _, entry := range defaultFlags.Init {
+			// Preprocess by removing trailing spaces and - prefixes
+			entry = strings.TrimSpace(strings.TrimLeft(strings.ToLower(entry), "-"))
+
+			split := strings.Split(entry, " ")
+			flag := split[0]
+			args := split[1:]
+
+			fmt.Println(flag, args)
+			switch flag {
+			default:
+				panic("invalid flag entry within flakeupTemplates.defaultFlags.init")
+			case DryRun.Short, DryRun.Full:
+				opts.DryRun = true
+			case NoConfirm.Short, NoConfirm.Full:
+				opts.NoConfirm = true
+			case ConflictDefault.Short, ConflictDefault.Full:
+				// ConflictDefault only expects one argument
+				opts.ConflictDefault = args[0]
+			}
+		}
+	}
+
+	actions, err := conf.Templates[opts.Template].Process(opts.OutDir)
 
 	if err != nil {
 		fmt.Printf("Encountered an error! %w\n", err)

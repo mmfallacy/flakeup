@@ -75,7 +75,7 @@ func main() {
 	}
 
 	if initCmd.Used {
-		err := cli.HandleInit(initOpts)
+		err := cli.HandleInit(&initOpts)
 		fmt.Println(err)
 	}
 }
