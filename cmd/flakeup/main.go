@@ -45,9 +45,9 @@ func init() {
 	initOpts.OutDir = "."
 	initCmd.AddPositionalValue(&initOpts.OutDir, "outdir", 2, false, "Directory to put the initialized template")
 
-	initCmd.Bool(&initOpts.DryRun, "", "dry-run", "Show changes only, do not apply.")
-	initCmd.Bool(&initOpts.NoConfirm, "c", "no-confirm", "Apply template changes automatically")
-	initCmd.String(&initOpts.ConflictDefault, "d", "conflict-default", "On asks, set this as default conflict resolution")
+	initCmd.Bool(&initOpts.DryRun, cli.DryRun.Short, cli.DryRun.Full, cli.DryRun.Desc)
+	initCmd.Bool(&initOpts.NoConfirm, cli.NoConfirm.Short, cli.NoConfirm.Full, cli.NoConfirm.Desc)
+	initCmd.String(&initOpts.ConflictDefault, cli.ConflictDefault.Short, cli.ConflictDefault.Full, cli.ConflictDefault.Desc)
 
 }
 
