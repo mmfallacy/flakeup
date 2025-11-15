@@ -24,3 +24,22 @@ var ConflictDefault = Flag{
 	Short: "d",
 	Full:  "conflict-default",
 }
+
+// Subcommand: show
+var ShowSource = Flag{
+	Desc:  "Include template sources in output",
+	Short: "s",
+	Full:  "source",
+}
+
+var ShowDesc = Flag{
+	Desc:  "Include template descriptions in output",
+	Short: "d",
+	Full:  "description",
+}
+
+var ShowRules = Flag{
+	Desc:  "Include template rules in output",
+	Short: "r",
+	Full:  "rules",
+}

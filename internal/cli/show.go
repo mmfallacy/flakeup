@@ -13,6 +13,10 @@ type ShowOptions struct {
 	GlobalOptions *GlobalOptions
 	// Positionals
 	Template string
+	// Flags
+	Source bool
+	Desc   bool
+	Rules  bool
 }
 
 func HandleShow(opts *ShowOptions) error {
@@ -31,22 +35,42 @@ func HandleShow(opts *ShowOptions) error {
 	templates := conf.Templates
 
 	fmt.Println(s.Info("List of available flakeup templates:"))
+
+	// Short print
+	if !opts.Desc && !opts.Rules {
+		for template, val := range templates {
+			fmt.Print(s.Success("‣ ", template))
+			if opts.Source {
+				fmt.Print(" @ ", utils.Path{Root: *val.Root, Rel: ""}.ShortenTo(8, 0))
+			}
+			fmt.Println()
+		}
+		return nil
+	}
+
+	// Full Show
 	for template, val := range templates {
 		fmt.Println("============================================")
 		fmt.Println(s.Success("‣ ", template))
-		fmt.Println("@ ", utils.Path{Root: *val.Root, Rel: ""}.ShortenTo(8, 0))
+		if opts.Source {
+			fmt.Println("@ ", utils.Path{Root: *val.Root, Rel: ""}.ShortenTo(8, 0))
+		}
 		fmt.Print("============================================")
 
-		out, err := s.Markdown.Render(*val.Description)
-		if err != nil {
-			return fmt.Errorf("show: error rendering description: %w", err)
+		if opts.Desc {
+			out, err := s.Markdown.Render(*val.Description)
+			if err != nil {
+				return fmt.Errorf("show: error rendering description: %w", err)
+			}
+
+			fmt.Print(out)
 		}
 
-		fmt.Print(out)
-
-		fmt.Println(s.Info("  Rules:"))
-		for pattern, rule := range *val.Rules {
-			fmt.Println(s.Infof("  ‣ %s : %s", pattern, *rule.OnConflict))
+		if opts.Rules {
+			fmt.Println(s.Info("  Rules:"))
+			for pattern, rule := range *val.Rules {
+				fmt.Println(s.Infof("  ‣ %s : %s", pattern, *rule.OnConflict))
+			}
 		}
 	}
 

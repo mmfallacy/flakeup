@@ -59,6 +59,9 @@ func init() {
 	flaggy.AttachSubcommand(showCmd, 1)
 
 	showCmd.AddPositionalValue(&showOpts.Template, "template", 1, false, "Name of the template to initialize.")
+	showCmd.Bool(&showOpts.Source, cli.ShowSource.Short, cli.ShowSource.Full, cli.ShowSource.Desc)
+	showCmd.Bool(&showOpts.Desc, cli.ShowDesc.Short, cli.ShowDesc.Full, cli.ShowDesc.Desc)
+	showCmd.Bool(&showOpts.Rules, cli.ShowRules.Short, cli.ShowRules.Full, cli.ShowRules.Desc)
 }
 
 // Get Flake Path from other source if flag is unset
