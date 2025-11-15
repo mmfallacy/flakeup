@@ -32,8 +32,8 @@
 
 ### `show`
 
-- [ ] without argument, show list of template names with description
-- [ ] with argument <template>, show rules for <template>
+- [x] without argument, show list of template names with description
+- [x] with argument <template>, show rules for <template>
 
 ## `outputs.flakeupTemplates` schema:
 
