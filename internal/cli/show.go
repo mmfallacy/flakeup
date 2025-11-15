@@ -41,7 +41,11 @@ func HandleShow(opts *ShowOptions) error {
 		for template, val := range templates {
 			fmt.Print(s.Success("‣ ", template))
 			if opts.Source {
-				fmt.Print(" @ ", utils.Path{Root: *val.Root, Rel: ""}.ShortenTo(8, 0))
+				source := "nil"
+				if val.Root != nil {
+					source = *val.Root
+				}
+				fmt.Print(" @ ", utils.Path{Root: source, Rel: ""}.ShortenTo(8, 0))
 			}
 			fmt.Println()
 		}
@@ -53,11 +57,15 @@ func HandleShow(opts *ShowOptions) error {
 		fmt.Println("============================================")
 		fmt.Println(s.Success("‣ ", template))
 		if opts.Source {
-			fmt.Println("@ ", utils.Path{Root: *val.Root, Rel: ""}.ShortenTo(8, 0))
+			source := "nil"
+			if val.Root != nil {
+				source = *val.Root
+			}
+			fmt.Print(" @ ", utils.Path{Root: source, Rel: ""}.ShortenTo(8, 0))
 		}
 		fmt.Print("============================================")
 
-		if opts.Desc {
+		if opts.Desc && val.Description != nil {
 			out, err := s.Markdown.Render(*val.Description)
 			if err != nil {
 				return fmt.Errorf("show: error rendering description: %w", err)
@@ -66,7 +74,7 @@ func HandleShow(opts *ShowOptions) error {
 			fmt.Print(out)
 		}
 
-		if opts.Rules {
+		if opts.Rules && val.Rules != nil {
 			fmt.Println(s.Info("  Rules:"))
 			for pattern, rule := range *val.Rules {
 				fmt.Println(s.Infof("  ‣ %s : %s", pattern, *rule.OnConflict))
