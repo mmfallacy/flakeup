@@ -15,10 +15,14 @@ func (p Path) Resolve() string {
 }
 
 func (p Path) Shorten() string {
-	parts := strings.Split(filepath.ToSlash(p.Resolve()), "/")
+	return p.ShortenTo(4, 4)
+}
+
+func (path Path) ShortenTo(p, s int) string {
+	parts := strings.Split(filepath.ToSlash(path.Resolve()), "/")
 	for i, part := range parts[:len(parts)-1] {
-		if len(part) > 11 {
-			parts[i] = part[:4] + "..." + part[len(part)-4:]
+		if len(part) > p+s+3 {
+			parts[i] = part[:p+1] + "..." + part[len(part)-s:]
 		}
 	}
 	return strings.Join(parts, "/")
