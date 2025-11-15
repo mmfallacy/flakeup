@@ -17,9 +17,10 @@ func push(s *[]ActionEntry, el *ActionEntry) error {
 }
 
 type Template struct {
-	Root       *string      `json:"root"`
-	Parameters *[]Parameter `json:"parameters"`
-	Rules      *Rules       `json:"rules"`
+	Description *string      `json:"description"`
+	Root        *string      `json:"root"`
+	Parameters  *[]Parameter `json:"parameters"`
+	Rules       *Rules       `json:"rules"`
 }
 
 func (T Template) Process(outdir string) ([]ActionEntry, error) {

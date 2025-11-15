@@ -30,8 +30,15 @@ func HandleShow(opts *ShowOptions) error {
 	templates := conf.Templates
 
 	fmt.Println(s.Info("List of available flakeup templates:"))
-	for template := range templates {
+	for template, val := range templates {
 		fmt.Println("‣ ", template)
+
+		out, err := s.Markdown.Render(*val.Description)
+		if err != nil {
+			return fmt.Errorf("show: error rendering description: %w", err)
+		}
+
+		fmt.Print(out)
 	}
 
 	return nil

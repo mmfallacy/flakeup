@@ -13,6 +13,7 @@
       };
       templates = {
         template = {
+          description = builtins.readFile ./template/README.md;
           root = ./template;
           rules = {
             "nix/*" = {
