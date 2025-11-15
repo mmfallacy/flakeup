@@ -59,7 +59,6 @@ func HandleInit(opts *InitOptions) error {
 			flag := split[0]
 			args := split[1:]
 
-			fmt.Println(flag, args)
 			switch flag {
 			default:
 				panic("invalid flag entry within flakeupTemplates.defaultFlags.init")
