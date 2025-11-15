@@ -31,6 +31,10 @@
             }
           ];
         };
+        template2 = {
+          description = builtins.readFile ./template2/README.md;
+          root = ./template2;
+        };
       };
     };
   };
