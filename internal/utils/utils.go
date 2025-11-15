@@ -51,3 +51,17 @@ func LooseMapStringToType[T ~string](val string, choices []T) (T, bool) {
 
 	return "", false
 }
+
+func UnwrapOrDefault[T any](ptr *T, d T) T {
+	if ptr == nil {
+		return d
+	}
+	return *ptr
+}
+
+func Ternary[T any](cond bool, a, b T) T {
+	if cond {
+		return a
+	}
+	return b
+}
