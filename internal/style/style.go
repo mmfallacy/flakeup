@@ -1,6 +1,9 @@
 package style
 
-import "github.com/jedib0t/go-pretty/v6/text"
+import (
+	"github.com/charmbracelet/glamour"
+	"github.com/jedib0t/go-pretty/v6/text"
+)
 
 var (
 	Info  = text.FgBlue.Sprint
@@ -46,3 +49,8 @@ var Icons = icons{
 	Ask:      "?",
 	Success:  "󰄹",
 }
+
+var Markdown, _ = glamour.NewTermRenderer(
+	glamour.WithStandardStyle("tokyo-night"),
+	glamour.WithWordWrap(120),
+)
