@@ -24,13 +24,19 @@ type Template struct {
 }
 
 func (T Template) Process(outdir string) ([]ActionEntry, error) {
+	if T.Root == nil {
+		return nil, fmt.Errorf("template processing: no specified root")
+	}
 	root := *T.Root
 
 	if !strings.HasPrefix(root, "/nix/store/") {
 		fmt.Println("WARNING: Template path not in the /nix/store/")
 	}
 
-	sortedRuleKeys := u.SortKeysByLength(u.GetKeys(*T.Rules))
+	sortedRuleKeys := make([]string, 0)
+	if T.Rules != nil {
+		sortedRuleKeys = u.SortKeysByLength(u.GetKeys(*T.Rules))
+	}
 
 	if err := u.AssertEach(sortedRuleKeys, func(el string) bool {
 		return doublestar.ValidatePattern(el)
@@ -88,6 +94,7 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 
 		for _, key := range sortedRuleKeys {
 			if ok := doublestar.MatchUnvalidated(key, path); ok {
+				// When nil, the for loop already terminates so no need to check before dereferencing
 				match = (*T.Rules)[key]
 				pattern = key
 				break
