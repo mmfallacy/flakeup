@@ -1,39 +1,20 @@
 # `flakeup`
 
-`flakeup` is a supercharged `nix flake init -t`.
+`flakeup` is a supercharged `nix flake init -t`, designed to provide a more flexible and powerful way to initialize Nix flakes from templates.
 
 ## Features
 
-- [x] command line tool
+`flakeup` provides a robust command-line interface for managing Nix flake templates. Key features include:
 
-  - [x] `flakeup i[nit] <template>`
-    > `flakeup` uses the flake specified in the following precedence:
-    > `--flake` > `$FLAKEUP_FLAKE` > `$FLAKE` > `~/.nixconfig`
-  - [x] `flakeup i[nit] --flake <FLAKE> <template>`
-    > Specify the flake template source via `--flake` flag
-  - [ ] `flakeup s[how]`
-    > Shows the list of flakeupTemplates
+- **Template Initialization:** Initialize new projects from specified templates with flexible source precedence (flags, environment variables, or `~/.nixconfig`).
+- **Conflict Resolution:** Configurable handling of file conflicts during template application (prepend, append, overwrite, ignore, or ask).
+- **Dry Run & No Confirmation Modes:** Safely preview changes or automate template application.
+- **Default Conflict Actions:** Set default behaviors for conflict resolution.
+- **Default Flags:** Define subcommand-specific default flags within `flakeupTemplates`.
+- **Template Discovery:** List available templates and view detailed rules for specific templates.
+- **Custom Flake Outputs:** Utilizes `flakeupTemplates` custom flake outputs for template discovery.
 
-- [x] Reads the `flakeupTemplates` custom flake outputs
-
-### `init`
-
-- [x] Copies files from flake to target directory
-- [x] When a conflict occurs, follow precedence rules (conflict: `"prepend"`, `"append"`, `"overwrite"`, `"ignore"`, `"ask"`)
-- [ ] `flakeupTemplates` may specify specific arguments per template(`ARG1,ARG2,...`) with their defaults. These would substitute their values in any file of the template that contains `@@ARG1@@,@@ARG2@@,...`
-- [ ] when arbitrary flags like `--ARG1 somevalue` are passed, it will override the replacement string for ALL matching substitutes.
-- [x] `--dry-run`: only show summary
-- [x] `--no-confirm`: ask to apply template by default. when `--no-confirm` is passed, automatically apply after summary
-- [x] `-d` `--conflict-default [prepend|append|overwrite|ignore]`: do not ask on conflicting files without rules/ with "ask" rule, automatically use passed response
-- [ ] `--no-substitute`: do not ask for parameter values. do not do substitution entirely.
-- [x] `flakeupTemplates.defaultFlags.<subcommand>`. default flags for each subcommand
-- [ ] nix package
-- [ ] nixpkgs package
-
-### `show`
-
-- [x] without argument, show list of template names with description
-- [x] with argument <template>, show rules for <template>
+For a detailed list of features and planned enhancements, please refer to [TODO.md](./TODO.md).
 
 ## `outputs.flakeupTemplates` schema:
 
