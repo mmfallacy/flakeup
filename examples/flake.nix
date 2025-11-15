@@ -1,10 +1,10 @@
 {
-  description = "Flakeup example flake with flakeupTemplates";
+  description = "Flakeup example flake with flakeup output";
 
   inputs = { };
 
   outputs = inputs: {
-    flakeupTemplates = {
+    flakeup = {
       defaultFlags = {
         init = [
           "--no-confirm"

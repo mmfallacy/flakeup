@@ -21,9 +21,6 @@ func HasFlakeOutput(flake, output string) (bool, error) {
 	cmd := exec.Command("nix", "eval", "--impure", "--expr", expr)
 	out, err := cmd.Output()
 
-	fmt.Println(cmd.Args)
-	fmt.Println(string(out), err)
-
 	if err != nil {
 		return false, fmt.Errorf("%w: cannot check if %s output exists in flake", ErrNixEvalFailed, output)
 	}

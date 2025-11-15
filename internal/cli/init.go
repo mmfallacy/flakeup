@@ -36,13 +36,13 @@ var conflictActionChoices = []core.ConflictAction{
 func HandleInit(opts *InitOptions) error {
 	fmt.Println(s.Infof("Cloning template %s from flake %s onto %s", opts.Template, opts.GlobalOptions.FlakePath, opts.OutDir))
 
-	if hasOutput, err := nix.HasFlakeOutput(opts.GlobalOptions.FlakePath, "flakeupTemplates"); err != nil {
+	if hasOutput, err := nix.HasFlakeOutput(opts.GlobalOptions.FlakePath, "flakeup"); err != nil {
 		return fmt.Errorf("init: %w: %w", ErrCliUnexpected, err)
 	} else if !hasOutput {
-		return fmt.Errorf("init: %w", ErrCliInitMissingFlakeupTemplateOutput)
+		return fmt.Errorf("init: %w", ErrCliInitMissingFlakeupOutput)
 	}
 
-	conf, err := nix.GetFlakeOutput[core.Config](opts.GlobalOptions.FlakePath, "flakeupTemplates")
+	conf, err := nix.GetFlakeOutput[core.Config](opts.GlobalOptions.FlakePath, "flakeup")
 
 	if err != nil {
 		return fmt.Errorf("init: %s", err)
@@ -61,7 +61,7 @@ func HandleInit(opts *InitOptions) error {
 
 			switch flag {
 			default:
-				panic("invalid flag entry within flakeupTemplates.defaultFlags.init")
+				panic("invalid flag entry within flakeup.defaultFlags.init")
 			case DryRun.Short, DryRun.Full:
 				opts.DryRun = true
 			case NoConfirm.Short, NoConfirm.Full:

@@ -4,4 +4,4 @@ import "errors"
 
 var ErrCliUnexpected = errors.New("unexpected error while running cli")
 
-var ErrCliInitMissingFlakeupTemplateOutput = errors.New("flakeupTemplates ouptut is missing")
+var ErrCliInitMissingFlakeupOutput = errors.New("flakeup ouptut is missing")

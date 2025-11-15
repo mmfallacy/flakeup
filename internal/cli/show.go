@@ -23,13 +23,13 @@ type ShowOptions struct {
 var HR = strings.Repeat("=", 80)
 
 func HandleShow(opts *ShowOptions) error {
-	if hasOutput, err := nix.HasFlakeOutput(opts.GlobalOptions.FlakePath, "flakeupTemplates"); err != nil {
+	if hasOutput, err := nix.HasFlakeOutput(opts.GlobalOptions.FlakePath, "flakeup"); err != nil {
 		return fmt.Errorf("show: %w: %w", ErrCliUnexpected, err)
 	} else if !hasOutput {
-		return fmt.Errorf("show: %w", ErrCliInitMissingFlakeupTemplateOutput)
+		return fmt.Errorf("show: %w", ErrCliInitMissingFlakeupOutput)
 	}
 
-	conf, err := nix.GetFlakeOutput[core.Config](opts.GlobalOptions.FlakePath, "flakeupTemplates")
+	conf, err := nix.GetFlakeOutput[core.Config](opts.GlobalOptions.FlakePath, "flakeup")
 
 	if err != nil {
 		return fmt.Errorf("show: %s", err)

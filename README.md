@@ -10,13 +10,13 @@
 - **Conflict Resolution:** Configurable handling of file conflicts during template application (prepend, append, overwrite, ignore, or ask).
 - **Dry Run & No Confirmation Modes:** Safely preview changes or automate template application.
 - **Default Conflict Actions:** Set default behaviors for conflict resolution.
-- **Default Flags:** Define subcommand-specific default flags within `flakeupTemplates`.
+- **Default Flags:** Define subcommand-specific default flags within `flakeup`.
 - **Template Discovery:** List available templates and view detailed rules for specific templates.
-- **Custom Flake Outputs:** Utilizes `flakeupTemplates` custom flake outputs for template discovery.
+- **Custom Flake Outputs:** Utilizes `flakeup` custom flake outputs for template discovery.
 
 For a detailed list of features and planned enhancements, please refer to [TODO.md](./TODO.md).
 
-## `outputs.flakeupTemplates` schema:
+## `outputs.flakeup` schema:
 
 ```nix
 {
