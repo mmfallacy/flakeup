@@ -1,4 +1,4 @@
-{ pkgs, }:
+{ pkgs, selfpkgs }:
 with pkgs;
 mkShell {
   name = ".nixconfig base template";
@@ -9,6 +9,8 @@ mkShell {
 
     # For injected formatting
     nixfmt-rfc-style
+
+    selfpkgs.flakeup
   ];
 
 }

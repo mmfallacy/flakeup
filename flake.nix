@@ -12,8 +12,11 @@
           #   pkgs-unstable = inputs.nixpkgs-unstable.legacyPackages.${system};
           # };
         in
-        {
-          devShells.${system}.default = import ./nix/devShell.nix { inherit pkgs; };
+        rec {
+          devShells.${system}.default = import ./nix/devShell.nix {
+            inherit pkgs;
+            selfpkgs = packages.${system};
+          };
           packages.${system} = import ./nix/package.nix { inherit pkgs; };
         }
       ) (import systems)
