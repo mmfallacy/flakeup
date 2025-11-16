@@ -94,5 +94,8 @@ func main() {
 	case showCmd.Used:
 		err := cli.HandleShow(&showOpts)
 		fmt.Println(err)
+	default:
+		flaggy.ShowHelpAndExit("")
+
 	}
 }
