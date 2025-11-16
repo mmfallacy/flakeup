@@ -1,5 +1,5 @@
 {
-  description = "Ayusin.ph Web Backend";
+  description = "flakeup - A supercharged `nix flake init -t`";
 
   outputs =
     { nixpkgs-stable, systems, ... }@inputs:
@@ -14,6 +14,7 @@
         in
         {
           devShells.${system}.default = import ./nix/devShell.nix { inherit pkgs; };
+          packages.${system} = import ./nix/package.nix { inherit pkgs; };
         }
       ) (import systems)
     );
