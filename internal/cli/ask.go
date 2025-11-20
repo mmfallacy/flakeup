@@ -15,6 +15,7 @@ var scanner = bufio.NewScanner(os.Stdin)
 
 var ErrAskInvalidAnswer = errors.New("answer is outside choices")
 
+// TODO: should this be named pick better? or askFromChoices?
 func ask[T ~string](question string, choices []T) (T, error) {
 	prettyChoices := ""
 
@@ -38,4 +39,18 @@ func ask[T ~string](question string, choices []T) (T, error) {
 	} else {
 		return "", ErrAskInvalidAnswer
 	}
+}
+
+// open ended ask, return string of result instead
+func prompt(question, d string) (string, error) {
+	fmt.Print(s.Infof(" %s", question))
+	if d != "" {
+		fmt.Print(s.Infof(" [%s]", d))
+	}
+	fmt.Print(s.Info(": "))
+	if !scanner.Scan() {
+		return "", scanner.Err()
+	}
+
+	return scanner.Text(), nil
 }
