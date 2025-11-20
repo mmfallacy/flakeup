@@ -75,7 +75,13 @@ func HandleInit(opts *InitOptions) error {
 		applyDefaultFlagsToOpts(*conf.DefaultFlags, opts)
 	}
 
-	actions, err := conf.Templates[opts.Template].Process(opts.OutDir)
+	template, ok := conf.Templates[opts.Template]
+
+	if !ok {
+		return fmt.Errorf("init: cannot find template %s", opts.Template)
+	}
+
+	actions, err := template.Process(opts.OutDir)
 
 	if err != nil {
 		fmt.Printf("Encountered an error! %w\n", err)
