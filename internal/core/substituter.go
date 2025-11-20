@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 )
 
@@ -13,10 +14,15 @@ type SubRule struct {
 type Substituter struct {
 	reader io.Reader
 	rules  []SubRule
-	// Tail contains the previous remaining len(tail) bytes
-	// (i.e. last buffer's buf[len(buf)-len(tail)]) to account for cross-chunk reads
-	tail []byte
+	// window is a buffer that contains previous tail and current read bytes.
+	// Read(p) updates window and does the substitutions.
+	window []byte
+	nTail  int
 }
+
+// Window grows depending on len(p) on Read(p) call.
+// Preallocate 4 * 1024 bytes instead to reduce overhead on reallocations
+const MIN_WINDOW_LENGTH = 4 * 1024
 
 func NewSubstituter(r io.Reader, patterns map[string]string) *Substituter {
 	rules := make([]SubRule, 0, len(patterns))
@@ -37,8 +43,30 @@ func NewSubstituter(r io.Reader, patterns map[string]string) *Substituter {
 	return &Substituter{
 		reader: r,
 		rules:  rules,
-		tail:   make([]byte, 0, maxlen),
+		window: make([]byte, 0, MIN_WINDOW_LENGTH),
+		nTail:  maxlen,
 	}
+}
+
+func (s *Substituter) Debug() error {
+	for {
+		buf := make([]byte, 32*1024)
+		nr, err := s.Read(buf)
+		fmt.Printf("Read %d bytes from reader. err %+v\n", nr, err)
+
+		if err != nil && err != io.EOF {
+			return err
+		}
+
+		if err == io.EOF {
+			break
+		}
+
+		if nr > 0 {
+			fmt.Print(string(buf[:nr]))
+		}
+	}
+	return nil
 }
 
 // implement io.Reader interface
@@ -47,26 +75,43 @@ func (s *Substituter) Read(p []byte) (int, error) {
 		return 0, nil
 	}
 
-	// Create temporary buffer to not modify p yet
-	window := make([]byte, 0, len(p))
-	// Apply leftover replacements from last read
-	copy(window, s.tail)
-	// Prefill remaining bytes of window from Reader
-	
-	if _, err := s.reader.Read()
-	
+	// Flush safe bytes from window
+	// Always keep at least s.nTail bytes to accomodate cross-chunk replacements
+	if len(s.window) >= len(p) {
+		keep := min(len(p), len(s.window)-s.nTail)
+		n := copy(p, s.window[:keep])
+		s.window = s.window[n:]
+		return n, nil
+	}
 
-	
+	tmp := make([]byte, len(p))
+	if _, err := s.reader.Read(tmp); err != nil {
+		return 0, err
+	}
+
+	s.window = append(s.window, tmp...)
+
+	// Apply substitution rules
+	for _, rule := range s.rules {
+		s.window = bytes.ReplaceAll(s.window, rule.Find, rule.Replace)
+	}
+
+	// Strictly len(window) > len(p) as we're appending tmp (of length len(p))
+	// TODO: check if at this step len(window) = len(p) + s.nTail
+	n := copy(p, s.window[:len(tmp)])
+	s.window = s.window[n:]
+	return n, nil
 }
 
 // Design choices:
-// - Manually reallocate when append() exceeds capacity
+// - ~~Manually reallocate when append() exceeds capacity~~
+// - preallocate decent amount to save overhead for reallocation
 
 // Game plan:
 // Consistent behavior:
 // Return 0, nil on len(p) == 0
 // Flush at most len(p) bytes
-// Call 0: 
+// Call 0:
 // Read(p) from reader
 // last tail bytes of current p cannot yet be flushed as cross-chunk replacements might happen
 // ie. safeFlush := current p - tail
@@ -84,4 +129,3 @@ func (s *Substituter) Read(p []byte) (int, error) {
 // do bytes.ReplaceAll on window
 // safeFlush = window[:len(p)]
 // window = window[len(p):]
-
