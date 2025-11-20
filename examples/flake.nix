@@ -29,6 +29,10 @@
               name = "ARG1";
               prompt = "Specify Argument 1";
             }
+            {
+              name = "ARG2";
+              default = "test2";
+            }
           ];
         };
         template2 = {
