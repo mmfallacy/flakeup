@@ -60,6 +60,13 @@ func applyDefaultFlagsToOpts(df core.DefaultFlags, opts *InitOptions) {
 // This function resolves core.Parameters into Substitution mappings by asking the user
 type Parameters []core.Parameter
 
+const ARG_DELIM = "@@"
+
+// TODO: should i put this in utils?
+func surround(s string) string {
+	return fmt.Sprintf("%s%s%s", ARG_DELIM, s, ARG_DELIM)
+}
+
 func (p Parameters) Resolve() (core.Substitutions, error) {
 	substitutions := make(core.Substitutions)
 	for i, p := range p {
@@ -69,14 +76,14 @@ func (p Parameters) Resolve() (core.Substitutions, error) {
 		case p.Prompt == nil && p.Default == nil:
 			return nil, fmt.Errorf("template: invalid parameter entry #%d: both prompt and default are nil", i)
 		case p.Prompt == nil:
-			substitutions[*p.Name] = *p.Default
+			substitutions[surround(*p.Name)] = *p.Default
 		default:
 			answer, err := prompt(*p.Prompt, utils.UnwrapOrDefault(p.Default, ""))
 			if err != nil {
 				return nil, err
 			}
 
-			substitutions[*p.Name] = answer
+			substitutions[surround(*p.Name)] = answer
 		}
 	}
 
