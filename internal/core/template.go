@@ -23,6 +23,8 @@ type Template struct {
 	Rules       *Rules       `json:"rules"`
 }
 
+type Substitutions map[string]string
+
 func (T Template) Process(outdir string) ([]ActionEntry, error) {
 	if T.Root == nil {
 		return nil, fmt.Errorf("template processing: no specified root")

@@ -56,6 +56,33 @@ func applyDefaultFlagsToOpts(df core.DefaultFlags, opts *InitOptions) {
 	}
 }
 
+// TODO: Is creating a receiver a good idea here?
+// This function resolves core.Parameters into Substitution mappings by asking the user
+type Parameters []core.Parameter
+
+func (p Parameters) Resolve() (core.Substitutions, error) {
+	substitutions := make(core.Substitutions)
+	for i, p := range p {
+		switch true {
+		case p.Name == nil:
+			return nil, fmt.Errorf("template: invalid parameter entry #%d: no name", i)
+		case p.Prompt == nil && p.Default == nil:
+			return nil, fmt.Errorf("template: invalid parameter entry #%d: both prompt and default are nil", i)
+		case p.Prompt == nil:
+			substitutions[*p.Name] = *p.Default
+		default:
+			answer, err := prompt(*p.Prompt, utils.UnwrapOrDefault(p.Default, ""))
+			if err != nil {
+				return nil, err
+			}
+
+			substitutions[*p.Name] = answer
+		}
+	}
+
+	return substitutions, nil
+}
+
 func HandleInit(opts *InitOptions) error {
 	fmt.Println(s.Infof("Cloning template %s from flake %s onto %s", opts.Template, opts.GlobalOptions.FlakePath, opts.OutDir))
 
@@ -118,6 +145,18 @@ func HandleInit(opts *InitOptions) error {
 			}
 		}
 	}
+
+	// Create substitution mappings
+	var sub core.Substitutions
+	if template.Parameters != nil {
+		var params Parameters = *template.Parameters
+		sub, err = params.Resolve()
+		if err != nil {
+			return fmt.Errorf("init: %w", err)
+		}
+	}
+
+	fmt.Println(utils.Prettify(sub))
 
 	fmt.Println()
 	fmt.Println(s.Info("Summary of changes:"))
