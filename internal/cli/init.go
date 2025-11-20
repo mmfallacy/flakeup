@@ -33,6 +33,29 @@ var conflictActionChoices = []core.ConflictAction{
 	core.ConflictIgnore,
 }
 
+func applyDefaultFlagsToOpts(df core.DefaultFlags, opts *InitOptions) {
+	for _, entry := range df.Init {
+		// Preprocess by removing trailing spaces and - prefixes
+		entry = strings.TrimSpace(strings.TrimLeft(strings.ToLower(entry), "-"))
+
+		split := strings.Split(entry, " ")
+		flag := split[0]
+		args := split[1:]
+
+		switch flag {
+		default:
+			panic("invalid flag entry within flakeup.defaultFlags.init")
+		case DryRun.Short, DryRun.Full:
+			opts.DryRun = true
+		case NoConfirm.Short, NoConfirm.Full:
+			opts.NoConfirm = true
+		case ConflictDefault.Short, ConflictDefault.Full:
+			// ConflictDefault only expects one argument
+			opts.ConflictDefault = args[0]
+		}
+	}
+}
+
 func HandleInit(opts *InitOptions) error {
 	fmt.Println(s.Infof("Cloning template %s from flake %s onto %s", opts.Template, opts.GlobalOptions.FlakePath, opts.OutDir))
 
@@ -48,29 +71,8 @@ func HandleInit(opts *InitOptions) error {
 		return fmt.Errorf("init: %s", err)
 	}
 
-	defaultFlags := conf.DefaultFlags
-
-	if defaultFlags != nil && defaultFlags.Init != nil {
-		for _, entry := range defaultFlags.Init {
-			// Preprocess by removing trailing spaces and - prefixes
-			entry = strings.TrimSpace(strings.TrimLeft(strings.ToLower(entry), "-"))
-
-			split := strings.Split(entry, " ")
-			flag := split[0]
-			args := split[1:]
-
-			switch flag {
-			default:
-				panic("invalid flag entry within flakeup.defaultFlags.init")
-			case DryRun.Short, DryRun.Full:
-				opts.DryRun = true
-			case NoConfirm.Short, NoConfirm.Full:
-				opts.NoConfirm = true
-			case ConflictDefault.Short, ConflictDefault.Full:
-				// ConflictDefault only expects one argument
-				opts.ConflictDefault = args[0]
-			}
-		}
+	if conf.DefaultFlags != nil && conf.DefaultFlags.Init != nil {
+		applyDefaultFlagsToOpts(*conf.DefaultFlags, opts)
 	}
 
 	actions, err := conf.Templates[opts.Template].Process(opts.OutDir)
