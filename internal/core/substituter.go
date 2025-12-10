@@ -21,8 +21,8 @@ type Substituter struct {
 }
 
 // Window grows depending on len(p) on Read(p) call.
-// Preallocate 4 * 1024 bytes instead to reduce overhead on reallocations
-const MIN_WINDOW_LENGTH = 4 * 1024
+// Preallocate 32 * 1024 bytes to reduce overhead on reallocations
+const MIN_WINDOW_LENGTH = 32 * 1024
 
 func NewSubstituter(r io.Reader, patterns map[string]string) *Substituter {
 	rules := make([]SubRule, 0, len(patterns))
