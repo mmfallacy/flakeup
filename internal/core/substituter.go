@@ -74,33 +74,32 @@ func (s *Substituter) Read(p []byte) (int, error) {
 	if len(p) == 0 {
 		return 0, nil
 	}
-
 	// Flush safe bytes from window
 	// Always keep at least s.nTail bytes to accomodate cross-chunk replacements
 	if len(s.window) >= len(p) {
 		keep := min(len(p), len(s.window)-s.nTail)
-		n := copy(p, s.window[:keep])
-		s.window = s.window[n:]
-		return n, nil
+		ncopy := copy(p, s.window[:keep])
+		s.window = s.window[ncopy:]
+		return ncopy, nil
 	}
 
 	tmp := make([]byte, len(p))
-	if _, err := s.reader.Read(tmp); err != nil {
+	nread, err := s.reader.Read(tmp)
+	if err != nil {
 		return 0, err
 	}
-
-	s.window = append(s.window, tmp...)
+	// Place read bytes onto window
+	s.window = append(s.window, tmp[:nread]...)
 
 	// Apply substitution rules
 	for _, rule := range s.rules {
 		s.window = bytes.ReplaceAll(s.window, rule.Find, rule.Replace)
 	}
 
-	// Strictly len(window) > len(p) as we're appending tmp (of length len(p))
-	// TODO: check if at this step len(window) = len(p) + s.nTail
-	n := copy(p, s.window[:len(tmp)])
-	s.window = s.window[n:]
-	return n, nil
+	// Flush window and return copied bytes (ncopy := min of len(p) or len(s.window))
+	ncopy := copy(p, s.window)
+	s.window = s.window[ncopy:]
+	return ncopy, nil
 }
 
 // Design choices:
