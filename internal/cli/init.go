@@ -51,7 +51,10 @@ func applyDefaultFlagsToOpts(df core.DefaultFlags, opts *InitOptions) {
 			opts.NoConfirm = true
 		case ConflictDefault.Short, ConflictDefault.Full:
 			// ConflictDefault only expects one argument
-			opts.ConflictDefault = args[0]
+			// also, prioritize flags set within command invocation
+			if opts.ConflictDefault == "" {
+				opts.ConflictDefault = args[0]
+			}
 		}
 	}
 }
