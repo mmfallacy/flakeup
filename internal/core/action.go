@@ -11,16 +11,7 @@ import (
 type ActionEntry struct {
 	Desc    string
 	Pattern string
-
-	Action Action
-}
-
-func (a ActionEntry) Process() error {
-	return a.Action.Do()
-}
-
-func (a ActionEntry) String() string {
-	return a.Action.String()
+	Action
 }
 
 type Action interface {
