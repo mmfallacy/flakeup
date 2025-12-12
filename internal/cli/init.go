@@ -166,8 +166,6 @@ func HandleInit(opts *InitOptions) error {
 		}
 	}
 
-	fmt.Println(utils.Prettify(sub))
-
 	fmt.Println()
 	fmt.Println(s.Info("Summary of changes:"))
 	// Summarize changes
@@ -235,7 +233,7 @@ func HandleInit(opts *InitOptions) error {
 		}
 
 		// Process action entry
-		if err = actions[i].Process(); err != nil {
+		if err = actions[i].Do(sub); err != nil {
 			return err
 		}
 	}

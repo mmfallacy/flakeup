@@ -15,7 +15,7 @@ type ActionEntry struct {
 }
 
 type Action interface {
-	Do() error
+	Do(sub Substitutions) error
 	String() string
 }
 
@@ -25,7 +25,7 @@ type Ask struct {
 	Dest u.Path
 }
 
-func (a Ask) Do() error {
+func (a Ask) Do(sub Substitutions) error {
 	return errors.New("action ask do attempt")
 }
 
@@ -67,7 +67,7 @@ type Mkdir struct {
 	Dest u.Path
 }
 
-func (a Mkdir) Do() error {
+func (a Mkdir) Do(sub Substitutions) error {
 	return os.MkdirAll(a.Dest.Resolve(), 0o755)
 }
 
@@ -81,8 +81,12 @@ type Exact struct {
 	Dest u.Path
 }
 
-func (a Exact) Do() error {
-	return MergeInto(a.Src.Resolve(), nil, a.Dest.Resolve())
+func (a Exact) Do(sub Substitutions) error {
+	if sub == nil {
+		return MergeInto(a.Src.Resolve(), nil, a.Dest.Resolve())
+	} else {
+		return MergeIntoWithSubstitutions(a.Src.Resolve(), nil, a.Dest.Resolve(), sub)
+	}
 }
 
 func (a Exact) String() string {
@@ -95,8 +99,12 @@ type Overwrite struct {
 	Dest u.Path
 }
 
-func (a Overwrite) Do() error {
-	return MergeInto(a.Src.Resolve(), nil, a.Dest.Resolve())
+func (a Overwrite) Do(sub Substitutions) error {
+	if sub == nil {
+		return MergeInto(a.Src.Resolve(), nil, a.Dest.Resolve())
+	} else {
+		return MergeIntoWithSubstitutions(a.Src.Resolve(), nil, a.Dest.Resolve(), sub)
+	}
 }
 
 func (a Overwrite) String() string {
@@ -110,9 +118,13 @@ type Append struct {
 	Dest   u.Path
 }
 
-func (a Append) Do() error {
+func (a Append) Do(sub Substitutions) error {
 	s := a.Suffix.Resolve()
-	return MergeInto(a.Base.Resolve(), &s, a.Dest.Resolve())
+	if sub == nil {
+		return MergeInto(a.Base.Resolve(), &s, a.Dest.Resolve())
+	} else {
+		return MergeIntoWithSubstitutions(a.Base.Resolve(), &s, a.Dest.Resolve(), sub)
+	}
 }
 
 func (a Append) String() string {
@@ -126,9 +138,14 @@ type Prepend struct {
 	Dest   u.Path
 }
 
-func (a Prepend) Do() error {
+func (a Prepend) Do(sub Substitutions) error {
 	b := a.Base.Resolve()
-	return MergeInto(a.Prefix.Resolve(), &b, a.Dest.Resolve())
+
+	if sub == nil {
+		return MergeInto(a.Prefix.Resolve(), &b, a.Dest.Resolve())
+	} else {
+		return MergeIntoWithSubstitutions(a.Prefix.Resolve(), &b, a.Dest.Resolve(), sub)
+	}
 }
 
 func (a Prepend) String() string {
@@ -141,7 +158,7 @@ type Ignore struct {
 	Dest u.Path
 }
 
-func (a Ignore) Do() error {
+func (a Ignore) Do(sub Substitutions) error {
 	return nil
 }
 
