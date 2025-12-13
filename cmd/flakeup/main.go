@@ -7,7 +7,6 @@ import (
 
 	"github.com/integrii/flaggy"
 	"github.com/mmfallacy/flakeup/internal/cli"
-	"github.com/mmfallacy/flakeup/internal/utils"
 )
 
 var version = "0.0.1"
@@ -75,7 +74,7 @@ func getFlakePath() string {
 
 	home, err := os.UserHomeDir()
 	if err != nil {
-		utils.Panic("Cannot get user home dir", err)
+		panic("Cannot get user home dir somehow")
 	}
 
 	return filepath.Join(home, ".nixconfig")
