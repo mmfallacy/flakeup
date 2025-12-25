@@ -24,8 +24,11 @@
 
 ## Planned Enhancements
 
-- [ ] `flakeup` output may specify specific arguments per template(`ARG1,ARG2,...`) with their defaults. These would substitute their values in any file of the template that contains `@@ARG1@@,@@ARG2@@,...`.
+- [/] `flakeup` output may specify specific arguments per template(`ARG1,ARG2,...`) with their defaults. These would substitute their values in any file of the template that contains `@@ARG1@@,@@ARG2@@,...`.
 - [ ] When arbitrary flags like `--ARG1 somevalue` are passed, it will override the replacement string for ALL matching substitutes.
 - [ ] `--no-substitute`: Do not ask for parameter values. Do not do substitution entirely.
 - [ ] Nix package.
 - [ ] Nixpkgs package.
+
+- [ ] Proper error outputs
+  - [ ] when nix getFlakeOutput fails, pipe stderr so user knows what went wrong
