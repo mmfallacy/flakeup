@@ -122,8 +122,8 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 				Desc:    fmt.Sprintf("prepend %s", path),
 				Pattern: pattern,
 				Action: &Prepend{
-					Base:   u.Path{Root: root, Rel: path},
-					Prefix: u.Path{Root: outdir, Rel: path},
+					Base:   u.Path{Root: outdir, Rel: path},
+					Prefix: u.Path{Root: root, Rel: path},
 					Dest:   u.Path{Root: outdir, Rel: path},
 				},
 			})
@@ -132,8 +132,8 @@ func (T Template) Process(outdir string) ([]ActionEntry, error) {
 				Desc:    fmt.Sprintf("append %s", path),
 				Pattern: pattern,
 				Action: &Append{
-					Base:   u.Path{Root: root, Rel: path},
-					Suffix: u.Path{Root: outdir, Rel: path},
+					Base:   u.Path{Root: outdir, Rel: path},
+					Suffix: u.Path{Root: root, Rel: path},
 					Dest:   u.Path{Root: outdir, Rel: path},
 				},
 			})
